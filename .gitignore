@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+.ruff_cache/
+*.egg-info/
+data/scrape_cache/
+data/*.csv
+data/*.txt
+data/*.backup*
+data/*.db-shm
+data/*.db-wal
+data/google/
+data/mhlw/
+tests/

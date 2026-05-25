@@ -1,0 +1,1854 @@
+/* ==========================================
+   AURA — プレミアムエディトリアル・デザインシステム
+
+   設計哲学:
+   - タイポグラフィと余白で構成する、雑誌のような情報設計
+   - 装飾を極限まで削ぎ落とし、コンテンツに集中させる
+   - 信頼感のある落ち着いたトーン（美容医療の不安を和らげる）
+   - 影・グラデーション・派手なアニメーションは一切不使用
+   - Aesop, Glossier, SSENSE, Monocle誌を参照
+   ========================================== */
+
+
+/* ------------------------------------------
+   リセットとカスタムプロパティ
+   ------------------------------------------ */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* 色彩 — 落ち着いたウォームトーン */
+    --bg:             #faf9f7;
+    --bg-warm:        #f3f1ed;
+    --surface:        #ffffff;
+    --border:         #eae8e4;
+    --border-subtle:  #f0ede8;
+
+    /* テキスト階層 */
+    --text:           #1a1a1a;
+    --text-secondary: #5c5c5c;
+    --text-muted:     #999999;
+
+    /* アクセント — 深いフォレストグリーン（信頼・安心） */
+    --accent:         #2c4a3e;
+    --accent-hover:   #1f3a30;
+    --accent-soft:    #e8efeb;
+
+    /* セマンティック */
+    --caution:        #9a6464;
+    --caution-bg:     #f8f0f0;
+    --warning:        #8a6a20;
+    --warning-bg:     #f9f5eb;
+
+    /* タイポグラフィ */
+    --font-ja: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+    --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* レイアウト */
+    --content-width:  720px;
+    --header-width:   960px;
+    --radius:         10px;
+    --radius-sm:      6px;
+    --transition:     0.2s ease;
+}
+
+
+/* ------------------------------------------
+   ベース
+   ------------------------------------------ */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-ja);
+    font-weight: 400;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* テキスト選択 — ブランドカラーを反映 */
+::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+
+/* ------------------------------------------
+   ヘッダー
+   ナビゲーション：薄い下線で領域を区切る、浮遊感を排除
+   ------------------------------------------ */
+#site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--header-width);
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 60px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+/* ロゴ — トラッキング広め、品のあるレタースペーシング */
+.header-logo {
+    font-family: var(--font-en);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    color: var(--text);
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.header-nav {
+    display: flex;
+    gap: 0.15rem;
+}
+
+/* ナビリンク — 控えめなサイズ、ホバーで色変化のみ */
+.nav-link {
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color var(--transition);
+}
+
+.nav-link:hover {
+    color: var(--text);
+}
+
+.nav-link.active {
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* 「相談する」ボタン — フラットなアクセントボタン */
+.nav-link--accent {
+    background: var(--accent);
+    color: #ffffff !important;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+
+.nav-link--accent:hover {
+    background: var(--accent-hover);
+    color: #ffffff !important;
+}
+
+
+/* ------------------------------------------
+   メインコンテンツ共通
+   ------------------------------------------ */
+main {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+}
+
+/* ページ切り替え — フェードインのみ（translateY は使わない） */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ページトップ */
+.page-top {
+    padding: 4rem 0 2.5rem;
+}
+
+.page-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+}
+
+.page-desc {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.9;
+}
+
+/* セクション共通 */
+.section-heading {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    margin-bottom: 0.75rem;
+}
+
+.section-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.9;
+}
+
+
+/* ------------------------------------------
+   ヒーロー
+   大きな見出しと控えめなリード文。雑誌の扉ページのように
+   ------------------------------------------ */
+.hero {
+    padding: 5rem 0 4rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.hero-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.7;
+    letter-spacing: -0.02em;
+}
+
+.hero-lead {
+    margin-top: 1.5rem;
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--text-secondary);
+    line-height: 2.0;
+}
+
+
+/* ------------------------------------------
+   悩み選択
+   カード形式だが、影や浮き上がりは使わない
+   ホバー時はボーダー色の微変化のみ
+   ------------------------------------------ */
+.concern-section {
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.concern-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+/* カード — グリッド内の均等セルとして配置 */
+.concern-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    background: var(--surface);
+    border: none;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    text-align: left;
+    transition: background var(--transition);
+    font-family: var(--font-ja);
+}
+
+/* 右端と下端のボーダーが外枠と重ならないよう調整 */
+.concern-card:nth-child(2n) {
+    border-right: none;
+}
+
+.concern-card:nth-last-child(-n+2) {
+    border-bottom: none;
+}
+
+.concern-card:hover {
+    background: var(--bg-warm);
+}
+
+.concern-label {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.concern-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+    font-weight: 300;
+}
+
+
+/* ------------------------------------------
+   広告の値段と実際の値段
+   リスト形式、区切り線のみ。数字の対比で語らせる
+   ------------------------------------------ */
+.price-truth-section {
+    padding: 4rem 0;
+}
+
+.price-truth-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.price-truth-item:first-child {
+    border-top: 1px solid var(--border);
+}
+
+.price-truth-item:last-child {
+    border-bottom: 1px solid var(--border);
+}
+
+.pt-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.01em;
+}
+
+.pt-prices {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+}
+
+.pt-ad {
+    color: var(--text-muted);
+}
+
+.pt-ad s {
+    text-decoration: line-through;
+}
+
+.pt-real {
+    color: var(--caution);
+    font-weight: 500;
+}
+
+.pt-note {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-weight: 300;
+}
+
+
+/* ------------------------------------------
+   CTA（行動喚起）
+   中央寄せ、フラットなボタン。余白たっぷり
+   ------------------------------------------ */
+.cta-section {
+    padding: 4rem 0;
+    text-align: center;
+    border-top: 1px solid var(--border);
+}
+
+.cta-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 0.85rem 2.5rem;
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ja);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.cta-button:hover {
+    background: var(--accent-hover);
+}
+
+
+/* ------------------------------------------
+   施術一覧
+   フィルターボタン → リスト形式の施術カード
+   ------------------------------------------ */
+.filter-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding-bottom: 2rem;
+}
+
+.filter-btn {
+    padding: 0.45rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: transparent;
+    font-family: var(--font-ja);
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+}
+
+.filter-btn:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+}
+
+.filter-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+/* 施術アイテム — ボーダー区切りのリスト */
+.proc-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.proc-item:first-child {
+    border-top: 1px solid var(--border);
+}
+
+.proc-item:hover {
+    background: var(--bg-warm);
+    margin: 0 -2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.proc-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.proc-item-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.proc-item-cat {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+}
+
+.proc-item-prices {
+    display: flex;
+    gap: 2rem;
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+}
+
+/* リスクバッジ — フラットでミニマル */
+.proc-item-badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 2px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    letter-spacing: 0.03em;
+}
+
+.badge-low {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.badge-medium {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.badge-high {
+    background: var(--caution-bg);
+    color: var(--caution);
+}
+
+
+/* ------------------------------------------
+   施術詳細パネル（オーバーレイ）
+   右からスライドイン。雑誌の記事詳細のように
+   ------------------------------------------ */
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(26, 26, 26, 0.2);
+    display: flex;
+    justify-content: flex-end;
+    animation: fadeIn 0.15s ease;
+}
+
+.detail-panel {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface);
+    overflow-y: auto;
+    padding: 3rem 2.5rem;
+    position: relative;
+    animation: slideIn 0.25s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+}
+
+/* 閉じるボタン — ミニマルな丸形 */
+.detail-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: border-color var(--transition);
+}
+
+.detail-close:hover {
+    border-color: var(--text-secondary);
+    color: var(--text);
+}
+
+.detail-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+}
+
+.detail-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+    font-weight: 300;
+}
+
+/* 詳細ブロック — セクション区切り */
+.detail-block {
+    margin-bottom: 2.5rem;
+}
+
+.detail-block-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* 料金比較グリッド */
+.detail-price-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    border: 1px solid var(--border);
+}
+
+.detail-price-box {
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.detail-price-box--ad {
+    background: var(--bg-warm);
+}
+
+.detail-price-box--real {
+    background: var(--caution-bg);
+}
+
+.detail-price-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    font-weight: 400;
+}
+
+.detail-price-value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-top: 0.3rem;
+    font-family: var(--font-en);
+}
+
+.detail-price-box--real .detail-price-value {
+    color: var(--caution);
+}
+
+/* 注意事項 */
+.detail-warning {
+    padding: 1rem 1.25rem;
+    border-left: 2px solid var(--warning);
+    background: var(--warning-bg);
+    font-size: 0.8rem;
+    color: var(--warning);
+    line-height: 1.8;
+    margin-top: 1rem;
+}
+
+/* 詳細リスト */
+.detail-list {
+    list-style: none;
+}
+
+.detail-list li {
+    padding: 0.5rem 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    padding-left: 1rem;
+    position: relative;
+    line-height: 1.8;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-list li:last-child {
+    border-bottom: none;
+}
+
+.detail-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.95rem;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--text-muted);
+}
+
+/* 質問リスト — 番号付き */
+.detail-question-list {
+    list-style: none;
+    counter-reset: question;
+}
+
+.detail-question-list li {
+    padding: 0.75rem 0 0.75rem 2rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    position: relative;
+    line-height: 1.8;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-question-list li:last-child {
+    border-bottom: none;
+}
+
+.detail-question-list li::before {
+    counter-increment: question;
+    content: counter(question);
+    position: absolute;
+    left: 0;
+    top: 0.75rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 500;
+    font-family: var(--font-en);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ------------------------------------------
+   クリニック検索
+   ------------------------------------------ */
+.search-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding-bottom: 2rem;
+}
+
+.search-field {
+    flex: 1;
+    min-width: 180px;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: var(--font-ja);
+    font-size: 0.82rem;
+    color: var(--text);
+    transition: border-color var(--transition);
+}
+
+.search-field:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.search-field::placeholder {
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+.search-select {
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: var(--font-ja);
+    font-size: 0.8rem;
+    color: var(--text);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    /* セレクトの右端に控えめな矢印 */
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23999' stroke-width='1.2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    padding-right: 2.2rem;
+}
+
+.search-btn {
+    padding: 0.7rem 1.8rem;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    font-family: var(--font-ja);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.search-btn:hover {
+    background: var(--accent-hover);
+}
+
+/* クリニックアイテム — 極力ミニマルに */
+.clinic-item {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.clinic-item:first-child {
+    border-top: 1px solid var(--border);
+}
+
+.clinic-item:last-child {
+    border-bottom: 1px solid var(--border);
+}
+
+.clinic-item-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.clinic-item-addr {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+    font-weight: 300;
+}
+
+.clinic-item-tags {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.clinic-tag {
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+}
+
+.clinic-item-link {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.clinic-item-link:hover {
+    color: var(--accent-hover);
+}
+
+/* ページネーション */
+.pager {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+    padding-top: 2rem;
+}
+
+.pager-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: transparent;
+    font-family: var(--font-en);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+}
+
+.pager-btn:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+}
+
+.pager-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+.pager-btn:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+
+/* ------------------------------------------
+   チャット（相談する）
+   iMessage/WhatsAppのような洗練されたメッセージUI
+   ------------------------------------------ */
+.advisor-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 140px);
+}
+
+.advisor-intro {
+    padding: 4rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.advisor-note {
+    margin-top: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-left: 2px solid var(--border);
+    background: transparent;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.9;
+    font-weight: 300;
+}
+
+.chat-area {
+    flex: 1;
+    padding: 1.5rem 0;
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* メッセージ共通 */
+.msg {
+    max-width: 85%;
+    animation: fadeIn 0.2s ease;
+}
+
+.msg--user {
+    align-self: flex-end;
+}
+
+.msg--assistant {
+    align-self: flex-start;
+}
+
+.msg-body {
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.9;
+}
+
+/* ユーザーバブル — アクセント色ソリッド、大きめ角丸 */
+.msg--user .msg-body {
+    background: var(--accent);
+    color: #ffffff;
+    border-radius: 18px 18px 4px 18px;
+}
+
+/* アシスタントバブル — 白背景、極細ボーダー、大きめ角丸 */
+.msg--assistant .msg-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 18px 18px 18px 4px;
+}
+
+/* メッセージ内のマークダウン整形 */
+.msg-body h2 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin: 1.25rem 0 0.4rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+    letter-spacing: 0.01em;
+}
+
+.msg-body h2:first-child {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.msg-body h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.25rem;
+}
+
+.msg-body ul,
+.msg-body ol {
+    padding-left: 1.2rem;
+    margin: 0.4rem 0;
+}
+
+.msg-body li {
+    font-size: 0.8rem;
+    margin: 0.2rem 0;
+    line-height: 1.8;
+}
+
+.msg-body strong {
+    color: var(--caution);
+    font-weight: 600;
+}
+
+/* ユーザーバブル内のstrongは白系で */
+.msg--user .msg-body strong {
+    color: #ffffff;
+}
+
+.msg-body em {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-style: normal;
+}
+
+/* チャット入力 — 画面下部にスティッキー固定 */
+.chat-input-row {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1.25rem 0;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+}
+
+.chat-field {
+    flex: 1;
+    padding: 0.8rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--surface);
+    font-family: var(--font-ja);
+    font-size: 0.85rem;
+    color: var(--text);
+    transition: border-color var(--transition);
+}
+
+.chat-field:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.chat-field::placeholder {
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+/* 送信ボタン — 丸型、ミニマル */
+.chat-send-btn {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+    transition: background var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-send-btn:hover {
+    background: var(--accent-hover);
+}
+
+.chat-send-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+
+/* ------------------------------------------
+   ローディング表示
+   ------------------------------------------ */
+.loading-text {
+    padding: 3rem 0;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+}
+
+
+/* ------------------------------------------
+   レスポンシブ — 600px ブレイクポイント
+   モバイルファーストではなくデスクトップダウン
+   ------------------------------------------ */
+
+/* デスクトップ拡張 */
+@media (min-width: 601px) {
+    .hero-title {
+        font-size: 2.1rem;
+        line-height: 1.6;
+    }
+}
+
+/* モバイル最適化 */
+@media (max-width: 600px) {
+    #site-header {
+        padding: 0 1rem;
+        height: 52px;
+    }
+
+    .header-logo {
+        font-size: 0.9rem;
+        letter-spacing: 0.22em;
+    }
+
+    .nav-link {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.72rem;
+    }
+
+    main {
+        padding: 0 1.25rem 4rem;
+    }
+
+    /* ヒーロー */
+    .hero {
+        padding: 3rem 0 2.5rem;
+    }
+
+    .hero-title {
+        font-size: 1.4rem;
+        line-height: 1.7;
+    }
+
+    .hero-lead {
+        font-size: 0.82rem;
+    }
+
+    /* 悩みグリッド — モバイルでも2カラム維持 */
+    .concern-section {
+        padding: 2.5rem 0;
+    }
+
+    .concern-card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    /* セクション */
+    .price-truth-section {
+        padding: 2.5rem 0;
+    }
+
+    .cta-section {
+        padding: 2.5rem 0;
+    }
+
+    /* ページトップ */
+    .page-top {
+        padding: 2.5rem 0 1.5rem;
+    }
+
+    /* 施術 */
+    .proc-item:hover {
+        margin: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* 詳細パネル */
+    .detail-panel {
+        padding: 2rem 1.5rem;
+    }
+
+    .detail-price-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 検索 */
+    .search-row {
+        flex-direction: column;
+    }
+
+    .search-field {
+        min-width: 100%;
+    }
+
+    /* チャット */
+    .advisor-intro {
+        padding: 2.5rem 0 1.5rem;
+    }
+
+    .msg {
+        max-width: 92%;
+    }
+
+    .chat-field {
+        font-size: 16px; /* iOSのズーム防止 */
+    }
+
+    /* タッチターゲット確保（最低44px） */
+    .filter-btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .pager-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .concern-card {
+        min-height: 44px;
+    }
+
+    .nav-link {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
+
+/* ------------------------------------------
+   施術アイテム — 追加要素
+   ------------------------------------------ */
+.proc-item-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.01em;
+}
+.proc-meta-dt,
+.proc-meta-risk {
+    white-space: nowrap;
+}
+
+
+/* ------------------------------------------
+   施術詳細 — 追加要素
+   ------------------------------------------ */
+.detail-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    margin-bottom: 2rem;
+    letter-spacing: 0.02em;
+}
+
+.detail-dt-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.detail-dt-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border-radius: 2px;
+    background: var(--bg-warm);
+}
+.detail-dt-item--real {
+    background: var(--caution-bg);
+}
+.detail-dt-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+.detail-dt-val {
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+.detail-dt-item--real .detail-dt-val {
+    color: var(--caution);
+}
+
+.detail-provenance {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 600px) {
+    .detail-dt-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ------------------------------------------
+   チャット — ローディングアニメーション
+   ------------------------------------------ */
+.msg-loading {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.75rem 1rem !important;
+    align-items: center;
+    min-height: auto;
+}
+.msg-loading span {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: msgDot 1.2s infinite ease-in-out;
+}
+.msg-loading span:nth-child(2) { animation-delay: 0.15s; }
+.msg-loading span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes msgDot {
+    0%, 60%, 100% { opacity: 0.25; transform: scale(0.85); }
+    30% { opacity: 1; transform: scale(1); }
+}
+
+
+/* ------------------------------------------
+   クリニック — Google評価表示
+   ------------------------------------------ */
+.clinic-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+.clinic-item-rating {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+.clinic-rating {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+}
+.clinic-reviews {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.clinic-tag--muted {
+    border-color: transparent;
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+}
+
+
+/* ------------------------------------------
+   クリニック一覧 — 結果件数
+   ------------------------------------------ */
+.clinic-result-count {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    padding-bottom: 0.75rem;
+}
+
+
+/* ------------------------------------------
+   クリニック一覧 — クリック可能状態
+   ------------------------------------------ */
+.clinic-item {
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.clinic-item:hover {
+    background: var(--bg-warm);
+    margin: 0 -2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+/* サムネイル付きカード */
+.clinic-item--has-thumb {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.clinic-item-thumb {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    border-radius: var(--radius-sm);
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-alt);
+}
+
+.clinic-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 600px) {
+    .clinic-item:hover {
+        margin: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .clinic-item-thumb {
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+    }
+}
+
+
+/* ------------------------------------------
+   クリニック詳細パネル
+   施術詳細と同じスライドインパネルを共有しつつ、
+   写真ギャラリーやGoogleデータの表示に対応
+   ------------------------------------------ */
+
+/* 写真ギャラリー — 雑誌のフォトグリッド */
+.clinic-photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin: -3rem -2.5rem 2rem;
+    overflow: hidden;
+}
+
+.clinic-photo-item {
+    aspect-ratio: 4 / 3;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--bg-warm);
+    cursor: pointer;
+    transition: opacity var(--transition);
+}
+
+.clinic-photo-item:hover {
+    opacity: 0.85;
+}
+
+/* 最初の写真は大きく表示 */
+.clinic-photo-item--main {
+    grid-column: span 2;
+    grid-row: span 2;
+    aspect-ratio: auto;
+}
+
+@media (max-width: 600px) {
+    .clinic-photo-gallery {
+        grid-template-columns: repeat(2, 1fr);
+        margin: -2rem -1.5rem 1.5rem;
+    }
+
+    .clinic-photo-item--main {
+        grid-column: span 2;
+        grid-row: span 1;
+        aspect-ratio: 16 / 9;
+    }
+}
+
+/* Google評価 */
+.clinic-detail-rating {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.5rem 0 0.75rem;
+}
+
+.clinic-detail-rating-score {
+    font-family: var(--font-en);
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+}
+
+.clinic-detail-rating-stars {
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+}
+
+.clinic-detail-rating-count {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+/* ブランチ名・住所 */
+.clinic-detail-branch {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+    font-weight: 300;
+}
+
+.clinic-detail-addr {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+    font-weight: 300;
+}
+
+/* 診療科タグ */
+.clinic-detail-depts {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+/* エディトリアルサマリー */
+.clinic-detail-summary {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.9;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+/* 基本情報テーブル */
+.clinic-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.82rem;
+}
+
+.clinic-info-row:last-child {
+    border-bottom: none;
+}
+
+.clinic-info-label {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 5rem;
+}
+
+.clinic-info-value {
+    color: var(--text);
+    text-align: right;
+    font-weight: 400;
+}
+
+.clinic-info-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.clinic-info-link:hover {
+    color: var(--accent-hover);
+}
+
+/* 営業時間リスト */
+.clinic-hours-list {
+    list-style: none;
+    padding: 0;
+}
+
+.clinic-hours-list li {
+    padding: 0.4rem 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+.clinic-hours-list li:last-child {
+    border-bottom: none;
+}
+
+/* 地図 */
+.clinic-map-container {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.clinic-map-iframe {
+    width: 100%;
+    height: 240px;
+    border: none;
+    display: block;
+}
+
+.clinic-map-link {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.clinic-map-link:hover {
+    color: var(--accent-hover);
+}
+
+/* Google Maps直リンク */
+.clinic-gmaps-link {
+    margin: 0.25rem 0 0.75rem;
+}
+
+.clinic-gmaps-link a {
+    display: inline-block;
+    font-size: 0.78rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--accent-soft);
+    border-radius: var(--radius-sm);
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.clinic-gmaps-link a:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+}
+
+
+/* ------------------------------------------
+   透明性スコア — 一覧バッジ
+   ------------------------------------------ */
+.transparency-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 2px;
+    font-family: var(--font-en);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.transparency-badge--high {
+    background: #d4edda;
+    color: #155724;
+}
+
+.transparency-badge--mid {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.transparency-badge--low {
+    background: #f0f0f0;
+    color: #555;
+}
+
+
+/* ------------------------------------------
+   透明性スコア — 詳細メーター
+   ------------------------------------------ */
+.transparency-meter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.transparency-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-alt);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.transparency-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+
+.transparency-fill--high {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.transparency-fill--mid {
+    background: linear-gradient(90deg, #007bff, #17a2b8);
+}
+
+.transparency-fill--low {
+    background: linear-gradient(90deg, #6c757d, #adb5bd);
+}
+
+.transparency-fill--minimal {
+    background: #dee2e6;
+}
+
+.transparency-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.transparency-score {
+    font-family: var(--font-en);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.02em;
+}
+
+.transparency-score small {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.transparency-desc {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+}
+
+
+/* ------------------------------------------
+   医師情報 — 詳細パネル
+   ------------------------------------------ */
+.doctor-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.82rem;
+    flex-wrap: wrap;
+}
+
+.doctor-item:last-child {
+    border-bottom: none;
+}
+
+.doctor-title {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    min-width: 2.5rem;
+}
+
+.doctor-name {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.doctor-cert {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--accent-soft);
+    border-radius: 2px;
+    font-size: 0.65rem;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.doctor-more {
+    padding-top: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+
+/* ------------------------------------------
+   施術メニュー — 詳細パネル
+   ------------------------------------------ */
+.proc-menu-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.82rem;
+}
+
+.proc-menu-item:last-child {
+    border-bottom: none;
+}
+
+.proc-menu-name {
+    flex: 1;
+    color: var(--text);
+    font-weight: 400;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.proc-menu-price {
+    font-family: var(--font-en);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    letter-spacing: -0.01em;
+}
+
+.proc-menu-src {
+    display: inline-block;
+    padding: 0.08rem 0.35rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    background: var(--bg-alt);
+    color: var(--text-muted);
+}
+
+/* ------------------------------------------
+   口コミ — 詳細パネル
+   ------------------------------------------ */
+.review-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.review-stars {
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+}
+
+.review-author {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+
+.review-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+}

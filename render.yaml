@@ -1,0 +1,24 @@
+# AURA MVP — Render デプロイ設定
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: aura-mvp
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore  # 東京から最も近いリージョン
+    healthCheckPath: /api/health
+    envVars:
+      - key: AURA_DATABASE_URL
+        value: sqlite+aiosqlite:///data/aura.db
+      - key: AURA_ANTHROPIC_API_KEY
+        sync: false  # Renderダッシュボードで手動設定
+      - key: AURA_GOOGLE_MAPS_API_KEY
+        sync: false  # Renderダッシュボードで手動設定
+      - key: AURA_DEBUG
+        value: "false"
+    disk:
+      name: aura-data
+      mountPath: /data
+      sizeGB: 1  # 無料枠: 1GB

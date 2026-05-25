@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+.env
+.env.local
+.git
+.gitignore
+tests/
+alembic/
+alembic.ini
+*.md
+.ruff_cache
