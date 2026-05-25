@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     # アプリケーション
     app_name: str = "AURA MVP API"
     app_version: str = "0.1.0"
-    debug: bool = True
+    debug: bool = False
 
     # データベース
     database_url: str = "sqlite+aiosqlite:///./data/aura.db"
