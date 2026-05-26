@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     # 対象地域
     target_prefecture: str = "東京都"
 
+    # レート制限
+    rate_limit_default: str = "60/minute"  # 一般API
+    rate_limit_chat: str = "10/minute"  # チャットAPI（LLMコスト保護）
+    rate_limit_admin: str = "20/minute"  # 管理API
+
+    # 管理
+    admin_key: str = ""  # 管理API認証キー
+
     model_config = {"env_file": ".env", "env_prefix": "AURA_"}
 
 

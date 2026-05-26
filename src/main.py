@@ -5,13 +5,18 @@ AURA MVP — FastAPIメインアプリケーション
 """
 
 import logging
+import time
+import traceback
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.config import settings
@@ -39,6 +44,9 @@ async def lifespan(app: FastAPI):
 docs_url = "/docs" if settings.debug else None
 redoc_url = "/redoc" if settings.debug else None
 
+# レート制限設定
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
@@ -47,6 +55,55 @@ app = FastAPI(
     docs_url=docs_url,
     redoc_url=redoc_url,
 )
+
+# レート制限をアプリに紐付け
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+# グローバル例外ハンドラー
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """未処理例外をキャッチし、構造化されたエラーレスポンスを返す"""
+    logger.error(
+        f"未処理例外: {type(exc).__name__}: {exc}\n"
+        f"パス: {request.method} {request.url.path}\n"
+        f"{traceback.format_exc()}"
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "internal_server_error",
+            "message": "サーバー内部エラーが発生しました。しばらく後にお試しください。",
+            "path": str(request.url.path),
+        },
+    )
+
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    """404エラーの構造化レスポンス"""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "not_found",
+            "message": "指定されたリソースが見つかりません。",
+            "path": str(request.url.path),
+        },
+    )
+
+
+@app.exception_handler(422)
+async def validation_error_handler(request: Request, exc):
+    """バリデーションエラーの構造化レスポンス"""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "validation_error",
+            "message": "リクエストの入力値が不正です。",
+            "path": str(request.url.path),
+        },
+    )
 
 
 # セキュリティヘッダーミドルウェア
@@ -58,6 +115,21 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
+
+
+# リクエストログミドルウェア
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    """APIリクエストのログを記録する"""
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        response = await call_next(request)
+        duration_ms = (time.time() - start) * 1000
+        # 静的ファイルはログしない
+        if not request.url.path.startswith("/static"):
+            logger.info(
+                f"{request.method} {request.url.path} → {response.status_code} ({duration_ms:.0f}ms)"
+            )
         return response
 
 
@@ -89,6 +161,7 @@ class AdminApiProtectionMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AdminApiProtectionMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 # CORS設定
 app.add_middleware(
@@ -107,8 +180,9 @@ app.add_middleware(
 
 
 @app.get("/api/health")
-async def health():
-    """APIヘルスチェック"""
+@limiter.exempt
+async def health(request: Request):
+    """APIヘルスチェック（レート制限対象外）"""
     return {
         "name": settings.app_name,
         "version": settings.app_version,
@@ -143,12 +217,14 @@ from src.api.procedures import router as procedures_router
 from src.api.analysis import router as analysis_router
 from src.api.advisor import router as advisor_router
 from src.api.db_admin import router as db_admin_router
+from src.api.favorites import router as favorites_router
 
 app.include_router(clinics_router, prefix="/api/clinics", tags=["clinics"])
 app.include_router(procedures_router, prefix="/api/procedures", tags=["procedures"])
 app.include_router(analysis_router, prefix="/api/analysis", tags=["analysis"])
 app.include_router(advisor_router, prefix="/api/advisor", tags=["advisor"])
 app.include_router(db_admin_router, prefix="/api/db", tags=["db-admin"])
+app.include_router(favorites_router, prefix="/api", tags=["favorites"])
 
 
 # 静的ファイル配信（フロントエンド）

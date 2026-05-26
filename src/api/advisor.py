@@ -9,7 +9,7 @@ import json
 import logging
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from starlette.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -60,6 +60,7 @@ class ChatResponse(BaseModel):
 @router.post("/chat")
 async def chat(
     req: ChatRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> ChatResponse:
     """

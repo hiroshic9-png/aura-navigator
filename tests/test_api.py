@@ -308,3 +308,94 @@ def test_data_freshness_report():
     assert "fill_rates" in report
     assert "price_data" in report
     assert report["total_clinics"] > 0
+
+
+# ==========================================
+# お気に入り・比較 API
+# ==========================================
+
+
+@pytest.mark.anyio
+async def test_favorites_empty(client: AsyncClient):
+    """初期状態でお気に入りが空"""
+    resp = await client.get("/api/favorites?session_id=test_session_empty")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 0
+
+
+@pytest.mark.anyio
+async def test_favorites_toggle(client: AsyncClient):
+    """お気に入りの追加と削除（トグル）が動作する"""
+    # クリニックIDを取得
+    resp = await client.get("/api/clinics/?limit=1")
+    clinics = resp.json()["clinics"]
+    if not clinics:
+        pytest.skip("クリニックデータなし")
+    clinic_id = clinics[0]["id"]
+
+    # 追加
+    resp = await client.post(
+        "/api/favorites?session_id=test_toggle",
+        json={"clinic_id": clinic_id},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["action"] == "added"
+    assert data["total_favorites"] == 1
+
+    # 再度トグルで削除
+    resp = await client.post(
+        "/api/favorites?session_id=test_toggle",
+        json={"clinic_id": clinic_id},
+    )
+    data = resp.json()
+    assert data["action"] == "removed"
+    assert data["total_favorites"] == 0
+
+
+@pytest.mark.anyio
+async def test_favorites_nonexistent_clinic(client: AsyncClient):
+    """存在しないクリニックはお気に入りに追加できない"""
+    resp = await client.post(
+        "/api/favorites",
+        json={"clinic_id": "nonexistent_12345"},
+    )
+    assert resp.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_compare_clinics(client: AsyncClient):
+    """2クリニックの比較が動作する"""
+    resp = await client.get("/api/clinics/?limit=2")
+    clinics = resp.json()["clinics"]
+    if len(clinics) < 2:
+        pytest.skip("クリニック2件未満")
+
+    clinic_ids = [c["id"] for c in clinics[:2]]
+    resp = await client.post(
+        "/api/compare",
+        json={"clinic_ids": clinic_ids},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "clinics" in data
+    assert "comparison_matrix" in data
+    assert "insights" in data
+    assert len(data["clinics"]) == 2
+
+
+@pytest.mark.anyio
+async def test_compare_too_few(client: AsyncClient):
+    """1件のみでは比較できない"""
+    resp = await client.get("/api/clinics/?limit=1")
+    clinics = resp.json()["clinics"]
+    if not clinics:
+        pytest.skip("クリニックデータなし")
+
+    resp = await client.post(
+        "/api/compare",
+        json={"clinic_ids": [clinics[0]["id"]]},
+    )
+    assert resp.status_code == 422  # バリデーションエラー
+
