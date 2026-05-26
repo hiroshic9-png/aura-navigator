@@ -182,12 +182,41 @@ app.add_middleware(
 @app.get("/api/health")
 @limiter.exempt
 async def health(request: Request):
-    """APIヘルスチェック（レート制限対象外）"""
-    return {
+    """APIヘルスチェック（レート制限対象外）
+
+    DB接続、LLM設定、データ統計を確認。
+    """
+    health_status = {
         "name": settings.app_name,
         "version": settings.app_version,
-        "status": "running",
+        "status": "healthy",
+        "checks": {},
     }
+
+    # DB接続チェック
+    try:
+        from src.db.database import AsyncSessionLocal
+        from sqlalchemy import text as sa_text
+
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(sa_text("SELECT COUNT(*) FROM clinics"))
+            clinic_count = result.scalar()
+            health_status["checks"]["database"] = {
+                "status": "ok",
+                "clinics": clinic_count,
+            }
+    except Exception as e:
+        health_status["checks"]["database"] = {"status": "error", "message": str(e)}
+        health_status["status"] = "degraded"
+
+    # LLM設定チェック
+    llm_configured = bool(settings.anthropic_api_key)
+    health_status["checks"]["llm"] = {
+        "status": "ok" if llm_configured else "not_configured",
+        "provider": settings.default_llm,
+    }
+
+    return health_status
 
 
 @app.get("/stats")
