@@ -401,3 +401,50 @@ async def test_compare_too_few(client: AsyncClient):
     )
     assert resp.status_code == 422  # バリデーションエラー
 
+
+# ==========================================
+# 入力サニタイズ
+# ==========================================
+
+
+def test_sanitize_xss():
+    """XSSパターンがサニタイズされる"""
+    from src.middleware.sanitize import sanitize_dict, check_xss
+
+    assert check_xss('<script>alert("xss")</script>')
+    assert check_xss('javascript:alert(1)')
+    assert not check_xss('普通のテキスト')
+
+    result = sanitize_dict({"msg": '<script>alert("xss")</script>'})
+    assert "<script" not in result["msg"]
+    assert "&lt;script&gt;" in result["msg"]
+
+
+def test_sanitize_nested():
+    """ネストされた辞書も再帰的にサニタイズされる"""
+    from src.middleware.sanitize import sanitize_dict
+
+    data = {"a": {"b": {"c": '<img onerror="alert(1)">'}}}
+    result = sanitize_dict(data)
+    # HTMLエスケープにより<imgタグが&lt;img に変換される
+    assert "<img" not in result["a"]["b"]["c"]
+    assert "&lt;" in result["a"]["b"]["c"]
+
+
+# ==========================================
+# concerns API 拡張
+# ==========================================
+
+
+@pytest.mark.anyio
+async def test_advisor_concerns_expanded(client: AsyncClient):
+    """8カテゴリの悩みが返される"""
+    resp = await client.get("/api/advisor/concerns")
+    assert resp.status_code == 200
+    data = resp.json()
+    cats = data["categories"]
+    assert "anti_aging" in cats
+    assert "body" in cats
+    assert "hair_removal" in cats
+    assert "breast" in cats
+    assert len(cats) == 8

@@ -461,6 +461,23 @@ main {
     padding-bottom: 2rem;
 }
 
+@media (max-width: 600px) {
+    .filter-row {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 1.5rem;
+    }
+    .filter-row::-webkit-scrollbar {
+        display: none;
+    }
+    .filter-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+
 .filter-btn {
     padding: 0.45rem 1.1rem;
     border: 1px solid var(--border);
