@@ -220,13 +220,64 @@ async def get_clinic(clinic_id: str, db: AsyncSession = Depends(get_db)):
     reviews = rev_result.scalars().all()
     data["reviews"] = [
         {
-            "text": r.text[:200] + ("…" if len(r.text or "") > 200 else ""),
+            "text": r.text or "",
             "rating": r.rating,
             "author": r.author_name or "",
             "sentiment": r.sentiment_score,
         }
         for r in reviews
     ]
+
+    # 口コミ感情分析サマリー（全口コミ対象）
+    all_rev_result = await db.execute(
+        select(
+            func.count(ReviewTable.id),
+            func.avg(ReviewTable.sentiment_score),
+        )
+        .where(ReviewTable.clinic_id == clinic_id)
+        .where(ReviewTable.is_spam != True)
+    )
+    summary_row = all_rev_result.one()
+    total_reviews = summary_row[0] or 0
+    avg_sentiment = summary_row[1]
+
+    # ポジ/ネガ/ニュートラル件数
+    pos_count = 0
+    neg_count = 0
+    neu_count = 0
+    aspect_counts = {}
+    if total_reviews > 0:
+        sentiment_result = await db.execute(
+            select(ReviewTable.sentiment_score, ReviewTable.aspects)
+            .where(ReviewTable.clinic_id == clinic_id)
+            .where(ReviewTable.is_spam != True)
+            .where(ReviewTable.sentiment_score.isnot(None))
+        )
+        for row in sentiment_result.all():
+            score = row[0]
+            if score > 0.2:
+                pos_count += 1
+            elif score < -0.2:
+                neg_count += 1
+            else:
+                neu_count += 1
+            # アスペクト集計
+            if row[1]:
+                try:
+                    aspects = json.loads(row[1])
+                    for asp in aspects:
+                        aspect_counts[asp] = aspect_counts.get(asp, 0) + 1
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+    data["review_summary"] = {
+        "total": total_reviews,
+        "avg_sentiment": round(avg_sentiment, 3) if avg_sentiment is not None else None,
+        "positive": pos_count,
+        "neutral": neu_count,
+        "negative": neg_count,
+        "aspects": aspect_counts,
+    }
 
     return data
 

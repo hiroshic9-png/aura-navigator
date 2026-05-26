@@ -6,7 +6,7 @@
     <title>AURA — 美容医療、受ける前に知っておきたいこと</title>
     <meta name="description" content="美容医療の広告ではわからない、本当の値段・リスク・聞くべき質問。厚労省認可1,358施設のデータで、カウンセリング前の準備に。">
     <meta name="keywords" content="美容医療,クリニック,二重,脂肪吸引,ヒアルロン酸,ボトックス,口コミ,費用,リスク">
-    <meta name="theme-color" content="#1a1a2e">
+    <meta name="theme-color" content="#6b5b73">
 
     <!-- OGP（ソーシャルシェア用） -->
     <meta property="og:title" content="AURA — 美容医療、受ける前に知っておきたいこと">
@@ -22,7 +22,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -43,37 +43,68 @@
             <div class="hero">
                 <h1 class="hero-title">美容医療、<br>受ける前に<br>知っておきたいこと。</h1>
                 <p class="hero-lead">広告の値段と、実際に請求される金額。<br>クリニックが教えてくれないリスクと、カウンセリングで聞くべき質問。<br>AURAは、あなたが納得して決めるための情報をまとめています。</p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-number" data-count="0">0</span>
+                        <span class="hero-stat-label">クリニック</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number" data-count="0">0</span>
+                        <span class="hero-stat-label">施術データ</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number" data-count="0">0</span>
+                        <span class="hero-stat-label">医師情報</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="concern-section">
+            <div class="concern-section fade-in-section">
                 <h2 class="section-heading">気になるのは、どこですか？</h2>
                 <div class="concern-grid">
                     <button class="concern-card" onclick="navigateWithConcern('eye')">
+                        <svg class="concern-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
                         <span class="concern-label">目もと</span>
                         <span class="concern-sub">二重・クマ・まぶたの重さ</span>
                     </button>
                     <button class="concern-card" onclick="navigateWithConcern('nose')">
+                        <svg class="concern-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2v14"/>
+                            <path d="M8 20c0-2 1.5-4 4-4s4 2 4 4"/>
+                        </svg>
                         <span class="concern-label">鼻</span>
                         <span class="concern-sub">高さ・団子鼻・小鼻</span>
                     </button>
                     <button class="concern-card" onclick="navigateWithConcern('skin')">
+                        <svg class="concern-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                            <circle cx="9" cy="9" r="1" fill="currentColor"/>
+                            <circle cx="15" cy="9" r="1" fill="currentColor"/>
+                        </svg>
                         <span class="concern-label">肌</span>
                         <span class="concern-sub">シミ・毛穴・ニキビ跡</span>
                     </button>
                     <button class="concern-card" onclick="navigateWithConcern('contour')">
+                        <svg class="concern-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2C8 2 4 6 4 12s2 8 8 10c6-2 8-4 8-10S16 2 12 2z"/>
+                        </svg>
                         <span class="concern-label">輪郭</span>
                         <span class="concern-sub">小顔・エラ・フェイスライン</span>
                     </button>
                 </div>
             </div>
 
-            <div class="price-truth-section">
+            <div class="price-truth-section fade-in-section">
                 <h2 class="section-heading">広告の値段と、実際の値段</h2>
                 <p class="section-desc">美容クリニックの広告には「最低価格」が表示されています。<br>でも、実際のカウンセリングで提示される金額は、大きく異なることがあります。</p>
                 <div id="price-truth-list"></div>
             </div>
 
-            <div class="cta-section">
+            <div class="cta-section fade-in-section">
                 <p class="cta-text">施術について、もっと詳しく知りたいことがあれば</p>
                 <button class="cta-button" onclick="navigate('advisor')">相談してみる</button>
             </div>
@@ -127,6 +158,12 @@
                 <div class="chat-area" id="chat-area">
                     <div class="chat-messages" id="chat-messages"></div>
                 </div>
+                <div class="chat-quick-actions" id="chat-quick-actions">
+                    <button class="chat-quick-btn" data-msg="二重にしたいんですが、埋没と切開の違いを教えてください">二重について聞く</button>
+                    <button class="chat-quick-btn" data-msg="鼻を高くしたいです。ヒアルロン酸とプロテーゼはどう違いますか？">鼻の施術を比較</button>
+                    <button class="chat-quick-btn" data-msg="シミ取りを考えています。レーザーの種類と費用を教えてください">シミ取りの費用</button>
+                    <button class="chat-quick-btn" data-msg="渋谷区で評価の高いクリニックを探しています">クリニックを探す</button>
+                </div>
                 <div class="chat-input-row">
                     <input type="text" id="chat-input" placeholder="例：二重にしたいけど、埋没と切開で迷っている" class="chat-field">
                     <button id="chat-send" class="chat-send-btn" aria-label="送信">
@@ -162,6 +199,65 @@
             <div id="clinic-detail-body"></div>
         </div>
     </div>
+
+    <!-- 比較パネル -->
+    <div id="compare-overlay" class="overlay" style="display:none;">
+        <div class="detail-panel compare-panel">
+            <button class="detail-close" id="compare-close" aria-label="閉じる">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18"/><path d="M6 6L18 18"/>
+                </svg>
+            </button>
+            <h2 class="detail-name">クリニック比較</h2>
+            <div id="compare-body" class="compare-grid"></div>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">AURA</div>
+            <p class="footer-desc">美容医療の患者に、初めての味方を。<br>クリニックから広告費を受け取らない、患者のためだけの情報サービスです。</p>
+            <div class="footer-source">データ出典: 厚生労働省 医療情報ネット（2025年12月1日版）/ Google Maps API</div>
+            <p class="footer-disclaimer">本サービスは医療行為の推薦を行いません。施術の判断は必ず担当の医師とご相談ください。</p>
+        </div>
+    </footer>
+
+    <!-- 比較バー -->
+    <div class="compare-bar" id="compare-bar" style="display:none;">
+        <div class="compare-bar-items" id="compare-bar-items"></div>
+        <button class="compare-bar-btn" id="compare-btn">比較する</button>
+    </div>
+
+    <!-- ボトムナビゲーション -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <a href="#" class="bottom-nav-item active" data-page="home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/>
+            </svg>
+            <span>ホーム</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-page="procedures">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                <path d="M9 14l2 2 4-4"/>
+            </svg>
+            <span>施術</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-page="clinics">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>クリニック</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-page="advisor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span>相談</span>
+        </a>
+    </nav>
 
     <script src="/static/js/app.js"></script>
 </body>

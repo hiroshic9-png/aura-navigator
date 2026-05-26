@@ -12,7 +12,7 @@ AURA MVP — インテークエンジン（条件ヒアリング）
 
 設計方針:
 - LLMに頼らず、ルールベースで高速抽出
-- 最大2往復の補完質問で条件を揃える
+- 最大3往復の補完質問で条件を揃える
 - ヒアリングは自然で押し付けがましくない
 """
 
@@ -175,11 +175,11 @@ def generate_followup_question(
     """
     不足条件に対する補完質問を生成
 
-    - 最大2回まで質問（それ以上は押し付けがましい）
-    - 2回聞いても揃わなければ、揃っている条件だけで推薦実行
+    - 最大3回まで質問（それ以上は押し付けがましい）
+    - 3回聞いても揃わなければ、揃っている条件だけで推薦実行
     """
-    if asked_count >= 2:
-        # 2回聞いたら、ある条件だけで進む
+    if asked_count >= 3:
+        # 3回聞いたら、ある条件だけで進む
         return None
 
     # 悩みに応じたカスタムテキスト
@@ -189,11 +189,11 @@ def generate_followup_question(
         # 初回: まとめて聞く（自然な会話として）
         questions = []
         if "area" in missing:
-            questions.append("エリアのご希望はありますか？（例: 渋谷、新宿、銀座など）")
+            questions.append("通えそうなエリアはありますか？（例: 渋谷、新宿、銀座など）")
         if "budget" in missing:
-            questions.append("ご予算はどのくらいをお考えですか？")
+            questions.append("予算のイメージはありますか？（例: 10万以内、30万くらいまでなど）")
         if "downtime" in missing:
-            questions.append("お仕事や学校のお休みはどのくらい取れますか？")
+            questions.append("施術後、お休みはどのくらい取れそうですか？（例: 3日、約1週間など）")
 
         if not questions:
             return None
@@ -201,17 +201,17 @@ def generate_followup_question(
         intro = f"{concern_name}についてですね。\n"
         intro += "よりあなたに合った情報をお伝えするために、いくつか教えてください。\n\n"
 
-        numbered = "\n".join(f"{'①②③④⑤'[i]} {q}" for i, q in enumerate(questions))
+        numbered = "\n".join(f"{i+1}. {q}" for i, q in enumerate(questions))
         return intro + numbered
 
     else:
-        # 2回目: まだ足りない項目だけ聞く
+        # 2回目以降: まだ足りない項目だけ聞く
         if "area" in missing:
-            return "エリアのご希望を教えていただけますか？ 特になければ、東京都内全域でお探しします。"
+            return "通えそうなエリアを教えていただけますか？ 特になければ、東京都内全域でお探しします。"
         if "budget" in missing:
-            return "ご予算のイメージを教えていただけますか？ 特になければ、幅広い価格帯でお探しします。"
+            return "予算のイメージを教えていただけますか？ 特になければ、幅広い価格帯でお探しします。"
         if "downtime" in missing:
-            return "お休みが取れる日数を教えていただけますか？ 特になければ、全ての施術を含めてお探しします。"
+            return "施術後に取れそうなお休みの日数を教えていただけますか？ 特になければ、全ての施術を含めてお探しします。"
 
     return None
 
@@ -236,6 +236,8 @@ def _get_concern_display(concern_tags: list[str]) -> str:
 # ==========================================
 
 # ユーザーがクリニック推薦を求めている表現
+# 注意: 過敏なトリガー（「教えて」「クリニック」「選び方」）は削除
+# これらは一般的な質問でも発火してしまうため
 RECOMMENDATION_TRIGGERS = [
     "どの施術がいい",
     "どこのクリニックがおすすめ",
@@ -245,11 +247,7 @@ RECOMMENDATION_TRIGGERS = [
     "いいクリニック",
     "良いクリニック",
     "上手な",
-    "教えて",
     "探して",
-    "クリニック",
-    "選び方",
-    "どう選べば",
     "合っている",
     "合ってる",
     "ぴったり",
@@ -258,19 +256,22 @@ RECOMMENDATION_TRIGGERS = [
 
 def is_recommendation_request(message: str) -> bool:
     """ユーザーのメッセージが推薦リクエストか判定"""
-    # 悩みキーワード + 推薦トリガーの組み合わせ
     has_concern = bool(match_concerns(message))
     has_trigger = any(trigger in message for trigger in RECOMMENDATION_TRIGGERS)
-
-    # 推薦トリガーがあれば推薦モードへ
-    if has_trigger:
-        return True
-
-    # 悩みキーワードのみでも、エリアや予算が含まれていれば推薦と判定
     has_area = any(kw in message for kw in AREA_KEYWORDS)
     has_budget = bool(parse_budget(message))
 
-    if has_concern and (has_area or has_budget):
+    # 明示的な推薦トリガー + 悩みがある場合のみ
+    if has_trigger and has_concern:
+        return True
+
+    # 悩み + エリア + 予算の組み合わせ（明らかに探している）
+    if has_concern and has_area and has_budget:
+        return True
+
+    # エリア指定 + 強いトリガー（探して・おすすめ等）
+    strong_triggers = ["探して", "おすすめ", "どこがいい", "いいクリニック", "良いクリニック"]
+    if has_area and any(t in message for t in strong_triggers):
         return True
 
     return False

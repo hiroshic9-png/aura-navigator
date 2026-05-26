@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.analyzers.freshness import build_freshness_metadata
+from src.advisor.engine import CONCERN_MAP
 from src.db.database import ProcedureTable, get_db
 
 router = APIRouter()
@@ -37,7 +38,12 @@ async def list_procedures(
         query = query.where(ProcedureTable.category == category)
 
     if concern:
-        query = query.where(ProcedureTable.matches_concern.contains(concern))
+        # CONCERN_MAPで日本語キーワードからタグに変換（例: "鼻先" → ["tip"]）
+        concern_tags = CONCERN_MAP.get(concern, [concern])
+        # いずれかのタグにマッチする施術を検索
+        from sqlalchemy import or_
+        tag_conditions = [ProcedureTable.matches_concern.contains(tag) for tag in concern_tags]
+        query = query.where(or_(*tag_conditions))
 
     if invasiveness:
         query = query.where(ProcedureTable.invasiveness == invasiveness)

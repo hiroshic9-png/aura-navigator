@@ -6,9 +6,11 @@ AURA MVP — AIアドバイザーAPI
 """
 
 import json
+import logging
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from starlette.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,8 +26,10 @@ from src.advisor.engine import (
     get_or_create_session,
     match_concerns,
 )
-from src.advisor.llm_client import call_llm, is_llm_available
+from src.advisor.llm_client import call_llm, is_llm_available, stream_llm
 from src.db.database import ProcedureTable, ClinicTable, get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -308,6 +312,382 @@ async def chat(
         matched_clinics=matched_clinics_response,
         response_source=llm_result["source"] if not recommendation_context else "recommendation",
         model=llm_result.get("model"),
+    )
+
+
+# ==========================================
+# ストリーミングチャットエンドポイント
+# ==========================================
+
+
+async def _prepare_chat_context(
+    req: ChatRequest,
+    db: AsyncSession,
+) -> dict:
+    """
+    チャットのコンテキスト準備（/chat と /chat/stream で共有するDRYロジック）
+
+    法的制約チェック、インテーク、施術マッチング、推薦エンジン、
+    コンテキスト構築までを一括で行い、結果を辞書で返す。
+
+    Returns:
+        {
+            "session": ConversationSession,
+            "session_id": str,
+            "boundary": LegalBoundary,
+            "redirect_msg": str | None,
+            "matched_procs": list[dict],
+            "matched_clinics_response": list[dict],
+            "recommendation_context": str,
+            "system_prompt": str,
+            "ctx": AdvisorContext,
+            "intake": IntakeSession | None,
+            "followup": str | None,   # ヒアリング中のフォローアップ質問
+        }
+    """
+    from src.advisor.intake import (
+        IntakeSession, IntakeState,
+        extract_conditions_from_message,
+        assess_intake_state,
+        generate_followup_question,
+    )
+    from src.advisor.recommendation_engine import (
+        UserConditions, recommend_clinics, build_recommendation_context,
+    )
+
+    # セッション取得・作成
+    session_id = req.session_id or str(uuid4())
+    session = get_or_create_session(session_id)
+
+    # インテークセッション管理
+    if not hasattr(session, '_intake'):
+        session._intake = IntakeSession()
+    intake = session._intake
+
+    # 1. 法的制約チェック
+    boundary, redirect_msg = check_legal_boundary(req.message)
+    if boundary == LegalBoundary.PROHIBITED:
+        return {
+            "session": session,
+            "session_id": session_id,
+            "boundary": boundary,
+            "redirect_msg": redirect_msg,
+            "matched_procs": [],
+            "matched_clinics_response": [],
+            "recommendation_context": "",
+            "system_prompt": "",
+            "ctx": None,
+            "intake": intake,
+            "followup": None,
+        }
+
+    # 2. 推薦モード判定
+    recommendation_context = ""
+    matched_clinics_response = []
+
+    if boundary == LegalBoundary.RECOMMENDATION or intake.state in (
+        IntakeState.CONCERN_IDENTIFIED, IntakeState.READY
+    ):
+        intake.conditions = extract_conditions_from_message(
+            req.message, intake.conditions
+        )
+        for prev_msg in session.messages:
+            if prev_msg["role"] == "user":
+                intake.conditions = extract_conditions_from_message(
+                    prev_msg["content"], intake.conditions
+                )
+
+        if req.budget_range:
+            from src.advisor.recommendation_engine import parse_budget
+            budget = parse_budget(req.budget_range)
+            if budget:
+                intake.conditions.budget = budget
+        if req.downtime_available:
+            from src.advisor.recommendation_engine import parse_downtime_days
+            dt = parse_downtime_days(req.downtime_available)
+            if dt is not None:
+                intake.conditions.downtime_days = dt
+        if req.age_range:
+            intake.conditions.age_range = req.age_range
+
+        state, missing = assess_intake_state(intake.conditions)
+        intake.state = state
+        intake.missing_fields = missing
+
+        if state == IntakeState.INITIAL:
+            boundary = LegalBoundary.ALLOWED
+
+        elif state == IntakeState.CONCERN_IDENTIFIED and intake.asked_count < 2:
+            followup = generate_followup_question(
+                intake.conditions, missing, intake.asked_count
+            )
+            if followup:
+                intake.asked_count += 1
+                return {
+                    "session": session,
+                    "session_id": session_id,
+                    "boundary": LegalBoundary.RECOMMENDATION,
+                    "redirect_msg": None,
+                    "matched_procs": [],
+                    "matched_clinics_response": [],
+                    "recommendation_context": "",
+                    "system_prompt": "",
+                    "ctx": None,
+                    "intake": intake,
+                    "followup": followup,
+                }
+
+        if state == IntakeState.READY or intake.asked_count >= 2:
+            rec_result = await recommend_clinics(db, intake.conditions, max_results=5)
+            recommendation_context = build_recommendation_context(rec_result)
+            intake.state = IntakeState.COMPLETED
+
+            for match in rec_result.clinic_matches[:5]:
+                matched_clinics_response.append({
+                    "clinic_id": match.clinic_id,
+                    "name": match.name,
+                    "city": match.city,
+                    "google_rating": match.google_rating,
+                    "google_review_count": match.google_review_count,
+                    "match_score": match.match_score,
+                    "match_reasons": match.match_reasons,
+                    "procedures": [p.name for p in match.procedures],
+                })
+
+    # 3. 施術マッチング
+    concerns = match_concerns(req.message)
+    for prev_msg in session.messages:
+        if prev_msg["role"] == "user":
+            concerns.extend(match_concerns(prev_msg["content"]))
+    concerns = list(set(concerns))
+
+    matched_procs = []
+    if concerns:
+        result = await db.execute(select(ProcedureTable))
+        all_procs = result.scalars().all()
+        for proc in all_procs:
+            try:
+                proc_concerns = json.loads(proc.matches_concern or "[]")
+            except (json.JSONDecodeError, TypeError):
+                proc_concerns = []
+
+            if any(c in proc_concerns for c in concerns):
+                pricing = {}
+                try:
+                    adv = json.loads(proc.advertised_price or "{}")
+                    real = json.loads(proc.real_price or "{}")
+                    hidden = json.loads(proc.hidden_costs or "[]")
+                    pricing = {
+                        "advertised": adv,
+                        "real": real,
+                        "gap_warning": proc.price_gap_note or "",
+                        "hidden_costs": hidden,
+                    }
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+                dt = {
+                    "official": proc.downtime_official or "",
+                    "real": proc.downtime_real or "",
+                }
+
+                risks = []
+                try:
+                    risks = json.loads(proc.risks or "[]")
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+                questions = []
+                try:
+                    questions = json.loads(proc.counseling_questions or "[]")
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+                matched_procs.append({
+                    "id": proc.id,
+                    "name": proc.name,
+                    "category": proc.category,
+                    "category_label": proc.category_label or "",
+                    "invasiveness": proc.invasiveness or "",
+                    "duration": proc.duration or "",
+                    "duration_type": proc.duration_type or "",
+                    "pricing": pricing,
+                    "downtime": dt,
+                    "risks": risks,
+                    "counseling_questions": questions,
+                })
+
+    # 4. クリニックデータ取得（個別指定時）
+    clinic_data = None
+    if req.clinic_id:
+        result = await db.execute(
+            select(ClinicTable).where(ClinicTable.id == req.clinic_id)
+        )
+        clinic = result.scalar_one_or_none()
+        if clinic:
+            clinic_data = {
+                "name": clinic.name,
+                "address": clinic.address,
+                "medical_departments": clinic.medical_departments,
+                "website": clinic.website,
+                "google_rating": clinic.google_rating,
+            }
+
+    # 5. コンテキスト構築
+    ctx = AdvisorContext(
+        concern=req.message,
+        budget_range=req.budget_range or session.context.budget_range,
+        downtime_available=req.downtime_available or session.context.downtime_available,
+        age_range=req.age_range or session.context.age_range,
+        matched_procedures=matched_procs,
+        target_clinic=clinic_data,
+        conversation_history=session.messages[-10:],
+        legal_boundary=boundary,
+    )
+    session.context = ctx
+
+    # 6. システムプロンプト構築
+    system_prompt = build_system_prompt(ctx, recommendation_context)
+
+    return {
+        "session": session,
+        "session_id": session_id,
+        "boundary": boundary,
+        "redirect_msg": None,
+        "matched_procs": matched_procs,
+        "matched_clinics_response": matched_clinics_response,
+        "recommendation_context": recommendation_context,
+        "system_prompt": system_prompt,
+        "ctx": ctx,
+        "intake": intake,
+        "followup": None,
+    }
+
+
+@router.post("/chat/stream")
+async def chat_stream(
+    req: ChatRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    ストリーミングチャットエンドポイント（SSE）
+
+    Server-Sent Events形式でレスポンスをストリーミング送信する。
+    法的制約チェック、施術マッチング、推薦エンジンは既存の/chatと同じロジック。
+
+    SSEイベント:
+        data: {"type": "start", "session_id": "..."}
+        data: {"type": "delta", "content": "テキスト断片"}
+        data: {"type": "done", "matched_procedures": [...], "matched_clinics": [...]}
+        data: {"type": "error", "message": "..."}
+    """
+    # コンテキスト準備（DRY — /chatと同じロジック）
+    prepared = await _prepare_chat_context(req, db)
+
+    session = prepared["session"]
+    session_id = prepared["session_id"]
+    boundary = prepared["boundary"]
+    matched_procs = prepared["matched_procs"]
+    matched_clinics_response = prepared["matched_clinics_response"]
+    recommendation_context = prepared["recommendation_context"]
+    system_prompt = prepared["system_prompt"]
+    ctx = prepared["ctx"]
+    intake = prepared["intake"]
+
+    async def event_generator():
+        """SSEイベントジェネレーター"""
+
+        # 開始イベント
+        yield f"data: {json.dumps({'type': 'start', 'session_id': session_id}, ensure_ascii=False)}\n\n"
+
+        # --- 即座に返すパターン（禁止 / フォローアップ） ---
+        if prepared["redirect_msg"]:
+            # 法的制約で禁止
+            msg = prepared["redirect_msg"]
+            session.messages.append({"role": "user", "content": req.message})
+            session.messages.append({"role": "assistant", "content": msg})
+            yield f"data: {json.dumps({'type': 'delta', 'content': msg}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'matched_procedures': [], 'matched_clinics': []}, ensure_ascii=False)}\n\n"
+            return
+
+        if prepared["followup"]:
+            # インテーク中のフォローアップ質問
+            msg = prepared["followup"]
+            session.messages.append({"role": "user", "content": req.message})
+            session.messages.append({"role": "assistant", "content": msg})
+            yield f"data: {json.dumps({'type': 'delta', 'content': msg}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'matched_procedures': [], 'matched_clinics': []}, ensure_ascii=False)}\n\n"
+            return
+
+        # --- モックテキストの事前生成（LLM未接続時用） ---
+        mock_text = None
+        if not is_llm_available():
+            if recommendation_context and intake:
+                mock_text = _generate_recommendation_mock(
+                    intake.conditions if hasattr(intake, 'conditions') else None,
+                    matched_clinics_response,
+                    matched_procs,
+                )
+            elif ctx:
+                mock_text = generate_mock_response(ctx, req.message)
+
+        # --- 注意喚起の接頭辞（CAUTION時） ---
+        caution_prefix = ""
+        if boundary == LegalBoundary.CAUTION:
+            caution_prefix = "*以下は一般的な情報の整理です。個別の医学的判断は担当医にご相談ください。*\n\n"
+
+        # --- ストリーミングLLM呼び出し ---
+        full_content = ""
+        source = "mock"
+
+        # 注意喚起の接頭辞をまず送信
+        if caution_prefix:
+            yield f"data: {json.dumps({'type': 'delta', 'content': caution_prefix}, ensure_ascii=False)}\n\n"
+            full_content += caution_prefix
+
+        try:
+            async for event in stream_llm(
+                system_prompt=system_prompt,
+                user_message=req.message,
+                conversation_history=session.messages[-8:],
+                mock_text=mock_text,
+            ):
+                if event["type"] == "delta":
+                    full_content += event["content"]
+                    yield f"data: {json.dumps({'type': 'delta', 'content': event['content']}, ensure_ascii=False)}\n\n"
+                elif event["type"] == "done":
+                    source = event.get("source", "mock")
+                    # 完了イベント
+                    done_data = {
+                        "type": "done",
+                        "matched_procedures": [p["name"] for p in matched_procs],
+                        "matched_clinics": matched_clinics_response,
+                        "response_source": source if not recommendation_context else "recommendation",
+                        "model": event.get("model"),
+                    }
+                    yield f"data: {json.dumps(done_data, ensure_ascii=False)}\n\n"
+                elif event["type"] == "error":
+                    yield f"data: {json.dumps({'type': 'error', 'message': event['message']}, ensure_ascii=False)}\n\n"
+                    return
+
+        except Exception as e:
+            logger.error(f"ストリーミングエラー: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'message': f'ストリーミングエラー: {str(e)[:200]}'}, ensure_ascii=False)}\n\n"
+            return
+
+        # --- 会話履歴に追加（ストリーミング完了後） ---
+        if full_content:
+            session.messages.append({"role": "user", "content": req.message})
+            session.messages.append({"role": "assistant", "content": full_content})
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # nginx対応
+        },
     )
 
 

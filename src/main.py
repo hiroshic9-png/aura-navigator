@@ -61,7 +61,34 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# 管理APIアクセス制限ミドルウェア
+class AdminApiProtectionMiddleware(BaseHTTPMiddleware):
+    """管理API（/api/db/）を本番環境で保護
+
+    debugモード以外では、API_ADMIN_KEYヘッダーによる認証を要求する。
+    これにより/api/db/export/等の管理エンドポイントへの不正アクセスを防止。
+    """
+    async def dispatch(self, request: Request, call_next):
+        import os
+        from fastapi.responses import JSONResponse
+
+        # 管理APIパスのみ対象
+        if request.url.path.startswith("/api/db/"):
+            # デバッグモードではスキップ
+            if not settings.debug:
+                admin_key = os.environ.get("AURA_ADMIN_KEY", "")
+                request_key = request.headers.get("X-Admin-Key", "")
+                # キーが未設定の場合は全てブロック
+                if not admin_key or request_key != admin_key:
+                    return JSONResponse(
+                        status_code=403,
+                        content={"detail": "管理APIへのアクセスが拒否されました"},
+                    )
+        return await call_next(request)
+
+
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AdminApiProtectionMiddleware)
 
 # CORS設定
 app.add_middleware(
@@ -91,19 +118,21 @@ async def health():
 
 @app.get("/stats")
 async def stats():
-    """DB統計情報"""
+    """DB統計情報（ヒーロー統計で使用）"""
     from sqlalchemy import func, select
 
-    from src.db.database import AsyncSessionLocal, ClinicTable, ProcedureTable, ReviewTable
+    from src.db.database import AsyncSessionLocal, ClinicTable, DoctorTable, ProcedureTable, ReviewTable
 
     async with AsyncSessionLocal() as session:
         clinic_count = await session.scalar(select(func.count(ClinicTable.id)))
         procedure_count = await session.scalar(select(func.count(ProcedureTable.id)))
+        doctor_count = await session.scalar(select(func.count(DoctorTable.id)))
         review_count = await session.scalar(select(func.count(ReviewTable.id)))
 
     return {
         "clinics": clinic_count or 0,
         "procedures": procedure_count or 0,
+        "doctors": doctor_count or 0,
         "reviews": review_count or 0,
     }
 
@@ -128,10 +157,28 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-# ルートパスでフロントエンドを返す（/api/* より後に配置）
+# SPAルーティング対応 — フロントエンドのルートを全てindex.htmlにフォールバック
+SPA_ROUTES = ["/", "/procedures", "/clinics", "/advisor"]
+
+
 @app.get("/")
 async def serve_root():
     """ルートパスでフロントエンドのindex.htmlを返却"""
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path), media_type="text/html")
+    return {"name": settings.app_name, "version": settings.app_version}
+
+
+@app.get("/procedures")
+@app.get("/clinics")
+@app.get("/advisor")
+async def serve_spa_route():
+    """SPA用ルート — ブラウザの戻る/進むボタンに対応
+
+    /procedures, /clinics, /advisor へのGETリクエストでも
+    index.htmlを返し、フロントエンドのJSがルーティングを処理する。
+    """
     index_path = STATIC_DIR / "index.html"
     if index_path.exists():
         return FileResponse(str(index_path), media_type="text/html")

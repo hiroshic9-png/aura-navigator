@@ -126,6 +126,14 @@ def build_system_prompt(ctx: AdvisorContext, recommendation_context: str = "") -
 - リスクは隠さないが、過度に脅さない
 - データに基づく事実と、個人的な意見を明確に区別
 
+## 回答の質についての重要な指示
+- 「一般的にこうです」という曖昧な表現は使わない。必ずデータから具体的な数字で答える
+- 比較質問には必ず「よいところ / 気になるところ / こんな人に向いている」の3軸で比較する
+- 価格の質問には「広告では○○円だが、実際は○○円かかる。その差額の原因は○○」まで説明する
+- リスクの質問には「よくあるリスク / 稀だが重大なリスク / 医師に確認すべきこと」の3段階で整理する
+- DTの質問には「クリニックが言う期間 / 実際の回復期間 / 周囲にバレないまでの期間」を区別する
+- 「そもそもどういう施術か」の説明を、知らない人でもわかるように、たとえを交えて簡潔に行う
+
 ## 回答の構成（クリニック候補提示時）
 1. **条件の確認**（あなたの条件を整理しました）
 2. **関連施術の整理**（条件に合う施術の比較）
@@ -140,18 +148,56 @@ def build_system_prompt(ctx: AdvisorContext, recommendation_context: str = "") -
 4. **知っておくべきリスク**（TOP3のリスク）
 5. **カウンセリングで聞くべき質問**（3-5個）
 6. **免責事項**
+
+## 回答の模範例
+
+### 良い回答例（二重についての質問）:
+「二重の施術は主に2つあります。
+
+**埋没法** — 糸でまぶたを留めて二重を作る方法です。
+- よいところ: 施術時間が短く（15-30分）、腫れが引くのが1週間程度と早い。やり直しがきく
+- 気になるところ: 広告では「29,800円」だが、実際は片目の価格で両目だと倍、さらに保証プランを勧められることが多く、総額15-30万円程度
+- こんな人に向いている: 初めての施術、自然な変化を求める方、DTをあまり取れない方
+
+**切開法** — まぶたを切開して二重のラインを作る方法です。
+- よいところ: 半永久的で戻りにくい。まぶたの脂肪やたるみも同時に取れる
+- 気になるところ: DTが2週間〜1ヶ月。傷跡が完全に消えるまでに3ヶ月程度。価格は20-40万円
+- こんな人に向いている: まぶたが厚い方、元に戻らない仕上がりを求める方」
+
+### 悪い回答例（避けるべき）:
+「二重の施術についてご案内します。二重埋没法は体への負担は軽いです。広告価格は29,800円です。実際の価格は異なります。」
+→ このようなデータの羅列ではなく、上のように「つまりどういうことか」を解説する
 """
 
-    # 施術データのコンテキスト注入
+    # 施術データのコンテキスト注入（全項目）
     if ctx.matched_procedures:
         system += "\n\n## 参照すべき施術データ\n"
         for proc in ctx.matched_procedures:
             system += f"\n### {proc.get('name', '')}\n"
+
+            # 施術の説明文
+            description = proc.get("description", "")
+            if description:
+                system += f"- 説明: {description}\n"
+
             system += f"- カテゴリ: {proc.get('category_label', '')}\n"
             system += f"- 侵襲度: {proc.get('invasiveness', '')}\n"
             system += f"- 持続期間: {proc.get('duration', '')}\n"
 
-            # 価格
+            # 向き・不向き
+            suitable = proc.get("suitable_for", [])
+            if suitable:
+                system += f"- 向いている人: {', '.join(suitable)}\n"
+            not_suitable = proc.get("not_suitable_for", [])
+            if not_suitable:
+                system += f"- 向いていない人: {', '.join(not_suitable)}\n"
+
+            # 推奨回数
+            sessions = proc.get("recommended_sessions", "")
+            if sessions:
+                system += f"- 推奨回数: {sessions}\n"
+
+            # 価格（全項目）
             pricing = proc.get("pricing", {})
             if pricing:
                 adv = pricing.get("advertised", {})
@@ -160,29 +206,45 @@ def build_system_prompt(ctx: AdvisorContext, recommendation_context: str = "") -
                 system += f"- 実勢価格: {real.get('display', '不明') if isinstance(real, dict) else real}\n"
                 gap = pricing.get("gap_warning", "")
                 if gap:
-                    system += f"- ⚠️ 価格ギャップ: {gap}\n"
+                    system += f"- 価格ギャップ警告: {gap}\n"
+                # 隠れコストは全件表示
                 hidden = pricing.get("hidden_costs", [])
                 if hidden:
-                    system += f"- 隠れコスト: {', '.join(hidden[:4])}\n"
+                    system += "- 隠れコスト:\n"
+                    for cost in hidden:
+                        system += f"  - {cost}\n"
 
-            # DT
+            # DT（全情報）
             dt = proc.get("downtime", {})
             if dt:
-                system += f"- DT（公式）: {dt.get('official', '')}\n"
-                system += f"- DT（実際）: {dt.get('real', '')}\n"
+                system += f"- DT（クリニック公式）: {dt.get('official', '')}\n"
+                system += f"- DT（実際の回復）: {dt.get('real', '')}\n"
+                social = dt.get("social_recovery", "")
+                if social:
+                    system += f"- DT（周囲にバレないまで）: {social}\n"
 
-            # リスク
+            # 回復段階
+            phases = proc.get("recovery_phases", [])
+            if phases:
+                system += "- 回復段階:\n"
+                for phase in phases:
+                    if isinstance(phase, dict):
+                        system += f"  - {phase.get('period', '')}: {phase.get('description', '')}\n"
+                    else:
+                        system += f"  - {phase}\n"
+
+            # リスク（全件表示）
             risks = proc.get("risks", [])
             if risks:
-                system += "- 主要リスク:\n"
-                for r in risks[:3]:
+                system += "- リスク（全件）:\n"
+                for r in risks:
                     system += f"  - {r}\n"
 
-            # カウンセリング質問
+            # カウンセリング質問（全件表示）
             questions = proc.get("counseling_questions", [])
             if questions:
-                system += "- カウンセリング質問:\n"
-                for q in questions[:3]:
+                system += "- カウンセリングで聞くべき質問（全件）:\n"
+                for q in questions:
                     system += f"  - {q}\n"
 
     # クリニックデータのコンテキスト注入
@@ -323,15 +385,84 @@ def match_concerns(user_message: str) -> list[str]:
 # モックLLMレスポンス生成
 # ==========================================
 
+# FAQ定型パターン — よくある定型質問への対応
+_FAQ_PATTERNS = {
+    "痛い": (
+        "施術の痛みについてですね。\n\n"
+        "痛みの感じ方は施術によって大きく異なります。\n\n"
+        "- **注射系**（ヒアルロン酸、ボトックス等）: チクッとする程度。麻酔クリームを塗れば、ほとんど感じない方が多いです\n"
+        "- **埋没法**: 局所麻酔の注射が一番痛いポイント。施術中はほぼ無痛\n"
+        "- **切開系**: 術中は麻酔で無痛。術後の痛みは鎮痛剤でコントロール可能\n"
+        "- **レーザー系**: ゴムで弾かれるような感覚。部位によって差があります\n\n"
+        "カウンセリングで「麻酔の種類」と「術後の痛みのピークはいつか」を確認しておくと安心です。"
+    ),
+    "何歳から": (
+        "年齢についてですね。\n\n"
+        "法的には18歳未満は親権者の同意が必要です。\n\n"
+        "- **美容注射**（ボトックス、ヒアルロン酸）: 20代後半〜が多いですが、年齢制限は特にありません\n"
+        "- **二重整形**: 10代後半〜20代前半が最も多い年代です\n"
+        "- **アンチエイジング系**: 30代〜が一般的ですが「早めの予防」として20代から始める方もいます\n\n"
+        "年齢よりも「顔の成長が落ち着いているか」「自分の意思で決めているか」が重要なポイントです。"
+    ),
+    "何回": (
+        "通院回数についてですね。\n\n"
+        "施術の種類によって大きく異なります。\n\n"
+        "- **1回完結型**（二重埋没、切開、鼻整形など外科系）: 施術は1回。経過観察で1-2回通院\n"
+        "- **複数回型**（レーザートーニング、ダーマペンなど）: 3-5回がワンクール。月1回ペース\n"
+        "- **定期メンテナンス型**（ヒアルロン酸、ボトックス）: 効果の持続は3-6ヶ月。継続的に通う必要あり\n\n"
+        "カウンセリングでは「トータルで何回通うのか」と「維持するための費用」を必ず聞いてください。"
+    ),
+    "バレる": (
+        "周囲にバレるかどうか、気になりますよね。\n\n"
+        "「バレやすさ」は施術の種類とダウンタイムの取り方次第です。\n\n"
+        "- **バレにくい施術**: ボトックス、ヒアルロン酸（少量）、レーザートーニング → 当日〜翌日から普通に過ごせる\n"
+        "- **工夫次第**: 二重埋没 → 腫れが引くまで3-7日。メガネやマスクでカバーする方が多い\n"
+        "- **しっかりDTが必要**: 切開系 → 2週間〜1ヶ月。長期休暇に合わせる方がほとんど\n\n"
+        "「周囲にバレないまでの期間」はクリニック公式のDTより長くなるのが一般的です。"
+    ),
+    "失敗": (
+        "失敗のリスクについて、率直にお伝えしますね。\n\n"
+        "**よくあるトラブル**:\n"
+        "- 仕上がりが思っていたイメージと違う（左右差、不自然さ）\n"
+        "- 広告の症例写真と実際の仕上がりのギャップ\n"
+        "- 想定より腫れが長引く\n\n"
+        "**稀だが重大なリスク**:\n"
+        "- 感染症、神経損傷、血管閉塞（フィラー注入時）\n"
+        "- 修正手術が必要になるケース\n\n"
+        "**リスクを下げるポイント**:\n"
+        "- 症例写真だけでなく「その医師の経験年数」「年間施術件数」を確認\n"
+        "- 保証制度の内容と適用条件を事前に確認\n"
+        "- 「やり直しの場合の費用」をカウンセリングで必ず質問する"
+    ),
+}
+
+
 def generate_mock_response(ctx: AdvisorContext, user_message: str) -> str:
     """
     APIキーが無い場合のモックレスポンス生成
 
     実際のLLMを使わず、テンプレートベースで
     構造化されたアドバイスを生成する。
+
+    改善点:
+    - 複数施術の比較分析（よいところ / 気になるところ / こんな人に）
+    - 価格の文脈化（差額の原因まで説明）
+    - FAQ定型パターン対応
+    - 自然な共感表現
+    - フォローアップサジェスト
     """
     concerns = match_concerns(user_message)
     procedures = ctx.matched_procedures
+
+    # FAQ定型パターンに該当するかチェック
+    for keyword, faq_response in _FAQ_PATTERNS.items():
+        if keyword in user_message:
+            response = faq_response + "\n"
+            # 施術データがあれば補足情報を追加
+            if procedures:
+                response += f"\n現在のご相談内容に関連する施術データもありますので、具体的な施術名を教えていただければ詳しくお伝えできます。\n"
+            response += LEGAL_DISCLAIMER
+            return response
 
     if not procedures:
         return (
@@ -349,71 +480,166 @@ def generate_mock_response(ctx: AdvisorContext, user_message: str) -> str:
     # 構造化レスポンス生成
     response_parts = []
 
-    # 1. 共感（短く自然に）
-    concern_short = user_message[:20].rstrip('。、')
+    # --- 1. 共感（自然な導入） ---
+    concern_short = user_message[:30].rstrip("。、！!？?")
     response_parts.append(
         f"ご相談ありがとうございます。\n\n"
-        f"「{concern_short}」というお悩み、同じように感じている方は多いです。\n"
-        f"関連する施術について、整理してお伝えしますね。\n"
+        f"「{concern_short}」をお考えなんですね。"
+        f"大事なお顔のことですから、しっかり情報を整理してお伝えしますね。\n"
     )
 
-    # 2. 関連施術の整理
-    response_parts.append("## 関連する施術\n")
+    # --- 2. 施術の比較分析 ---
+    is_comparison = len(procedures) >= 2
+    if is_comparison:
+        response_parts.append("## 関連する施術の比較\n")
+        response_parts.append(
+            "条件に合う施術を「よいところ / 気になるところ / こんな人に向いている」の3軸で整理しました。\n"
+        )
+    else:
+        response_parts.append("## 関連する施術\n")
 
     for proc in procedures[:4]:
         name = proc.get("name", "")
         inv = proc.get("invasiveness", "")
-        dur = proc.get("duration", "")[:40]
-        inv_label = {"low": "体への負担は軽い", "medium": "やや負担あり", "high": "体への負担が大きい"}.get(inv, inv)
+        dur = proc.get("duration", "")
+        description = proc.get("description", "")
+        inv_label = {
+            "low": "体への負担は軽い",
+            "medium": "やや負担あり",
+            "high": "体への負担が大きい",
+        }.get(inv, inv)
 
         pricing = proc.get("pricing", {})
         adv = pricing.get("advertised", {})
         real = pricing.get("real", {})
         adv_d = adv.get("display", "") if isinstance(adv, dict) else ""
         real_d = real.get("display", "") if isinstance(real, dict) else ""
-
-        response_parts.append(f"### {name}\n")
-        response_parts.append(f"- {inv_label}\n")
-        response_parts.append(f"- 効果の持続: {dur}\n")
-
-        if adv_d and real_d:
-            response_parts.append(f"- 広告では {adv_d} → **実際は {real_d}**\n")
-            gap = pricing.get("gap_warning", "")
-            if gap:
-                response_parts.append(f"- {gap[:100]}\n")
+        gap_warning = pricing.get("gap_warning", "")
+        hidden_costs = pricing.get("hidden_costs", [])
 
         dt = proc.get("downtime", {})
+        risks = proc.get("risks", [])
+        suitable = proc.get("suitable_for", [])
+
+        response_parts.append(f"### {name}\n")
+
+        # 施術の簡潔な説明
+        if description:
+            response_parts.append(f"{description}\n\n")
+
+        # よいところ
+        good_points = []
+        good_points.append(inv_label)
+        if dur:
+            good_points.append(f"効果の持続: {dur}")
+        suitable_text = ", ".join(suitable[:3]) if suitable else ""
+        response_parts.append(f"**よいところ**: {'. '.join(good_points)}\n")
+
+        # 気になるところ（価格の文脈化）
+        concerns_list = []
+        if adv_d and real_d:
+            # 差額の原因まで説明
+            price_text = f"広告では {adv_d} だが、実際は {real_d}"
+            if gap_warning:
+                price_text += f"。{gap_warning}"
+            concerns_list.append(price_text)
+        if hidden_costs:
+            concerns_list.append(f"隠れコスト: {', '.join(hidden_costs)}")
         if dt.get("real"):
-            response_parts.append(f"- 回復にかかる期間: {dt['real'][:80]}\n")
+            concerns_list.append(f"回復に {dt['real']} かかる")
+        if concerns_list:
+            response_parts.append(f"**気になるところ**: {'. '.join(concerns_list)}\n")
+
+        # こんな人に向いている
+        if suitable:
+            response_parts.append(f"**こんな人に向いている**: {', '.join(suitable)}\n")
+
+        # 不向きな人
+        not_suitable = proc.get("not_suitable_for", [])
+        if not_suitable:
+            response_parts.append(f"**向いていない場合**: {', '.join(not_suitable)}\n")
 
         response_parts.append("")
 
-    # 3. 主要リスク
+    # --- 3. 価格の真実（まとめ） ---
+    has_price_gap = any(
+        proc.get("pricing", {}).get("gap_warning") for proc in procedures[:4]
+    )
+    if has_price_gap:
+        response_parts.append("## 価格について知っておくこと\n")
+        for proc in procedures[:4]:
+            pricing = proc.get("pricing", {})
+            adv = pricing.get("advertised", {})
+            real = pricing.get("real", {})
+            adv_d = adv.get("display", "") if isinstance(adv, dict) else ""
+            real_d = real.get("display", "") if isinstance(real, dict) else ""
+            gap = pricing.get("gap_warning", "")
+            hidden = pricing.get("hidden_costs", [])
+
+            if adv_d and real_d and gap:
+                response_parts.append(f"**{proc.get('name', '')}**: 広告 {adv_d} → 実際 {real_d}\n")
+                response_parts.append(f"差額の理由: {gap}\n")
+                if hidden:
+                    response_parts.append(f"追加で発生しやすい費用: {', '.join(hidden)}\n")
+                response_parts.append("")
+
+    # --- 4. 主要リスク（3段階整理） ---
     response_parts.append("## 知っておきたいリスク\n")
     for proc in procedures[:2]:
         risks = proc.get("risks", [])
         if risks:
             response_parts.append(f"**{proc.get('name', '')}**:\n")
-            for r in risks[:3]:
-                response_parts.append(f"- {r[:100]}\n")
+            # リスクを段階的に整理
+            if len(risks) >= 3:
+                response_parts.append(f"- よくあるリスク: {risks[0]}\n")
+                response_parts.append(f"- 稀だが重大なリスク: {risks[1]}\n")
+                response_parts.append(f"- 医師に確認すべきこと: {risks[2]}\n")
+                for r in risks[3:]:
+                    response_parts.append(f"- {r}\n")
+            else:
+                for r in risks:
+                    response_parts.append(f"- {r}\n")
             response_parts.append("")
 
-    # 4. カウンセリング質問
+    # --- 5. DT情報（3区分） ---
+    has_dt = any(proc.get("downtime", {}).get("real") for proc in procedures[:4])
+    if has_dt:
+        response_parts.append("## ダウンタイムの真実\n")
+        for proc in procedures[:4]:
+            dt = proc.get("downtime", {})
+            if dt.get("official") or dt.get("real"):
+                response_parts.append(f"**{proc.get('name', '')}**:\n")
+                if dt.get("official"):
+                    response_parts.append(f"- クリニック公式: {dt['official']}\n")
+                if dt.get("real"):
+                    response_parts.append(f"- 実際の回復: {dt['real']}\n")
+                social = dt.get("social_recovery", "")
+                if social:
+                    response_parts.append(f"- 周囲にバレないまで: {social}\n")
+                response_parts.append("")
+
+    # --- 6. カウンセリング質問 ---
     response_parts.append("## カウンセリングで聞いておくこと\n")
     response_parts.append(
         "以下を確認しておくと、納得して判断しやすくなります。\n"
     )
     q_count = 0
-    for proc in procedures[:2]:
+    for proc in procedures[:3]:
         questions = proc.get("counseling_questions", [])
-        for q in questions[:3]:
+        for q in questions:
             q_count += 1
             response_parts.append(f"{q_count}. {q}\n")
         if questions:
             response_parts.append("")
 
-    # 5. 免責事項
+    # --- 7. 免責事項 ---
     response_parts.append(LEGAL_DISCLAIMER)
+
+    # --- 8. フォローアップサジェスト ---
+    response_parts.append(
+        "\n他に気になることがあれば、何でも聞いてくださいね。"
+        "「痛みはどのくらい？」「何回通うの？」といった質問にもお答えできます。"
+    )
 
     return "\n".join(response_parts)
 
