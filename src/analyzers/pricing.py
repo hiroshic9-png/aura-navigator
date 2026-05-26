@@ -249,7 +249,7 @@ def analyze_procedure_price(proc_data: dict) -> PriceGapAnalysis:
         real_max=real_max,
         gap_ratio=gap_ratio,
         gap_category=classify_gap(gap_ratio),
-        gap_warning=proc_data.get("price_gap_note", ""),
+        gap_warning=proc_data.get("price_gap_note") or "",
         hidden_costs=hidden_costs,
         hidden_cost_count=len(hidden_costs),
         estimated_hidden_total=estimated_hidden,

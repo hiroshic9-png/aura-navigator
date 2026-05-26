@@ -85,6 +85,7 @@ function navigate(pageName) {
     if (pageName === 'home' && !homeLoaded) loadHome();
     if (pageName === 'procedures' && !procLoaded) loadProcs();
     if (pageName === 'clinics' && !clinicsInitialized) initClinics();
+    if (pageName === 'favorites') renderFavorites();
 }
 
 // ヘッダーナビのイベントリスナー
@@ -534,8 +535,12 @@ async function searchClinics(page = 1) {
                 onclick="event.stopPropagation(); toggleCompare(this)"
                 title="比較に追加">`;
 
+            // お気に入りボタン
+            const favBtn = favoriteButtonHtml(c.id);
+
             return `
                 <div class="clinic-item${hasThumb}" onclick="showClinicDetail('${escapeHtml(c.id)}')">
+                    ${favBtn}
                     ${compareCheckbox}
                     ${thumbHtml}
                     <div class="clinic-item-content">
@@ -1593,3 +1598,189 @@ document.addEventListener('keydown', (e) => {
         closeToolModal();
     }
 });
+
+
+// ==========================================
+// お気に入り機能
+// ==========================================
+
+/**
+ * お気に入りストア — LocalStorageで永続化
+ */
+const favoritesStore = {
+    key: 'aura_favorites',
+
+    /** お気に入りIDの一覧を取得 */
+    getAll() {
+        try {
+            return JSON.parse(localStorage.getItem(this.key) || '[]');
+        } catch { return []; }
+    },
+
+    /** お気に入りに追加 */
+    add(clinicId) {
+        const favs = this.getAll();
+        if (!favs.includes(clinicId)) {
+            favs.push(clinicId);
+            localStorage.setItem(this.key, JSON.stringify(favs));
+        }
+    },
+
+    /** お気に入りから削除 */
+    remove(clinicId) {
+        const favs = this.getAll().filter(id => id !== clinicId);
+        localStorage.setItem(this.key, JSON.stringify(favs));
+    },
+
+    /** トグル（追加/削除）*/
+    toggle(clinicId) {
+        if (this.isFavorite(clinicId)) {
+            this.remove(clinicId);
+            return false;
+        } else {
+            this.add(clinicId);
+            return true;
+        }
+    },
+
+    /** お気に入りかどうか */
+    isFavorite(clinicId) {
+        return this.getAll().includes(clinicId);
+    },
+
+    /** 件数 */
+    count() {
+        return this.getAll().length;
+    },
+};
+
+
+/**
+ * お気に入りボタン（ハート）をトグル
+ */
+function toggleFavorite(event, clinicId) {
+    event.stopPropagation();
+    const added = favoritesStore.toggle(clinicId);
+
+    // ハートアイコンの更新
+    document.querySelectorAll(`.favorite-btn[data-clinic-id="${clinicId}"]`).forEach(btn => {
+        btn.classList.toggle('active', added);
+        btn.setAttribute('aria-label', added ? 'お気に入りから削除' : 'お気に入りに追加');
+    });
+
+    // トースト
+    showToast(added ? 'お気に入りに追加しました' : 'お気に入りから削除しました', 'info');
+
+    // お気に入りページが表示中なら再レンダリング
+    const favPage = document.getElementById('page-favorites');
+    if (favPage && favPage.classList.contains('active')) {
+        renderFavorites();
+    }
+
+    // ボトムナビのバッジ更新
+    updateFavoritesBadge();
+}
+
+
+/**
+ * ハートボタンのHTMLを生成
+ */
+function favoriteButtonHtml(clinicId) {
+    const isFav = favoritesStore.isFavorite(clinicId);
+    return `<button class="favorite-btn ${isFav ? 'active' : ''}" 
+                data-clinic-id="${escapeHtml(clinicId)}"
+                onclick="toggleFavorite(event, '${escapeHtml(clinicId)}')"
+                aria-label="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
+                <svg viewBox="0 0 24 24" width="18" height="18" 
+                     fill="${isFav ? 'currentColor' : 'none'}" 
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+            </button>`;
+}
+
+
+/**
+ * お気に入りページを描画
+ */
+async function renderFavorites() {
+    const listEl = document.getElementById('favorites-list');
+    const emptyEl = document.getElementById('favorites-empty');
+    const favIds = favoritesStore.getAll();
+
+    if (favIds.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'flex';
+        return;
+    }
+
+    emptyEl.style.display = 'none';
+
+    // お気に入りクリニックの情報を取得
+    const clinics = [];
+    for (const id of favIds) {
+        try {
+            const c = await api(`/api/clinics/${id}`);
+            clinics.push(c);
+        } catch { /* 削除済みなどは無視 */ }
+    }
+
+    if (clinics.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'flex';
+        return;
+    }
+
+    listEl.innerHTML = clinics.map(c => {
+        const rating = c.google_rating ? `<span class="clinic-rating">★ ${c.google_rating}</span>` : '';
+        const reviews = c.google_review_count ? `<span class="clinic-reviews">(${c.google_review_count}件)</span>` : '';
+
+        let transparencyBadge = '';
+        if (c.transparency_score != null) {
+            const level = c.transparency_score >= 70 ? 'high' : c.transparency_score >= 40 ? 'mid' : 'low';
+            transparencyBadge = `<span class="transparency-badge transparency-badge--${level}">透明性 ${Math.round(c.transparency_score)}</span>`;
+        }
+
+        return `
+            <div class="clinic-item favorite-item" onclick="showClinicDetail('${escapeHtml(c.id)}')">
+                ${favoriteButtonHtml(c.id)}
+                <div class="clinic-item-content">
+                    <div class="clinic-item-header">
+                        <div class="clinic-item-name">${escapeHtml(c.name)}</div>
+                        ${rating || reviews ? `<div class="clinic-item-rating">${rating}${reviews}</div>` : ''}
+                    </div>
+                    <div class="clinic-item-addr">${escapeHtml(c.address || c.city || '')}</div>
+                    <div class="clinic-item-tags">
+                        ${c.phone ? `<span class="clinic-tag">📞 ${escapeHtml(c.phone)}</span>` : ''}
+                        ${transparencyBadge}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+
+/**
+ * ボトムナビにバッジ表示
+ */
+function updateFavoritesBadge() {
+    const count = favoritesStore.count();
+    const navItem = document.querySelector('.bottom-nav-item[data-page="favorites"]');
+    if (!navItem) return;
+
+    let badge = navItem.querySelector('.nav-badge');
+    if (count > 0) {
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'nav-badge';
+            navItem.appendChild(badge);
+        }
+        badge.textContent = count;
+    } else if (badge) {
+        badge.remove();
+    }
+}
+
+// 初期バッジ表示
+updateFavoritesBadge();

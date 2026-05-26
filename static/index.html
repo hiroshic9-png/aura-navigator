@@ -180,6 +180,23 @@
                 </div>
             </div>
         </section>
+
+        <!-- お気に入り -->
+        <section id="page-favorites" class="page">
+            <div class="page-top">
+                <h1 class="page-title">お気に入り</h1>
+                <p class="page-desc">気になるクリニックを保存して、あとでじっくり比較できます。</p>
+            </div>
+            <div id="favorites-list" class="favorites-list"></div>
+            <div id="favorites-empty" class="favorites-empty" style="display:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="opacity:0.3;">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <p>まだお気に入りがありません</p>
+                <p class="favorites-empty-sub">クリニック一覧でハートを押すと、ここに保存されます</p>
+                <button class="cta-button" onclick="navigate('clinics')" style="margin-top:16px;">クリニックを探す</button>
+            </div>
+        </section>
     </main>
 
     <!-- 施術詳細パネル -->
@@ -256,6 +273,12 @@
                 <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
             <span>クリニック</span>
+        </a>
+        <a href="#" class="bottom-nav-item" data-page="favorites">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span>お気に入り</span>
         </a>
         <a href="#" class="bottom-nav-item" data-page="advisor">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

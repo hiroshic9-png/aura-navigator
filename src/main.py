@@ -163,6 +163,10 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AdminApiProtectionMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
+# 入力サニタイズ（XSS/SQLインジェクション対策）
+from src.middleware.sanitize import InputSanitizationMiddleware
+app.add_middleware(InputSanitizationMiddleware)
+
 # CORS設定
 app.add_middleware(
     CORSMiddleware,
@@ -278,6 +282,7 @@ async def serve_root():
 @app.get("/procedures")
 @app.get("/clinics")
 @app.get("/advisor")
+@app.get("/favorites")
 async def serve_spa_route():
     """SPA用ルート — ブラウザの戻る/進むボタンに対応
 
