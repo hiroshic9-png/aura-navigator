@@ -454,7 +454,6 @@ CONCERN_MAP = {
     "まぶた": ["double", "heavy"],
     "クマ": ["kuma"],
     "くま": ["kuma"],
-    "たるみ": ["sagging", "heavy"],
     "まぶたが重い": ["heavy"],
 
     # 鼻
@@ -487,6 +486,43 @@ CONCERN_MAP = {
     "あご": ["chin_shape", "double_chin"],
     "顎": ["chin_shape", "double_chin"],
     "頬": ["cheek"],
+
+    # アンチエイジング
+    "たるみ": ["sagging", "heavy", "anti_aging"],
+    "ハリ": ["anti_aging"],
+    "リフトアップ": ["anti_aging", "sagging"],
+    "ハイフ": ["anti_aging"],
+    "HIFU": ["anti_aging"],
+    "再生": ["anti_aging"],
+    "PRP": ["anti_aging"],
+    "水光注射": ["anti_aging"],
+    "エイジング": ["anti_aging"],
+    "若返り": ["anti_aging"],
+
+    # 痩身・ボディ
+    "痩せたい": ["body"],
+    "ダイエット": ["body"],
+    "脂肪吸引": ["body", "liposuction"],
+    "クールスカルプ": ["body"],
+    "痩身": ["body"],
+    "お腹": ["body"],
+    "太もも": ["body"],
+    "二の腕": ["body"],
+
+    # 脱毛
+    "脱毛": ["hair_removal"],
+    "ムダ毛": ["hair_removal"],
+    "レーザー脱毛": ["hair_removal"],
+    "VIO": ["hair_removal"],
+    "全身脱毛": ["hair_removal"],
+    "ヒゲ": ["hair_removal"],
+    "ひげ": ["hair_removal"],
+
+    # バスト
+    "豊胸": ["breast"],
+    "バスト": ["breast"],
+    "胸": ["breast"],
+    "おっぱい": ["breast"],
 }
 
 

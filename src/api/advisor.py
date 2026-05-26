@@ -808,26 +808,28 @@ async def list_concerns():
         "nose": {"label": "鼻", "concerns": []},
         "skin": {"label": "肌", "concerns": []},
         "contour": {"label": "輪郭・小顔", "concerns": []},
+        "anti_aging": {"label": "エイジング", "concerns": []},
+        "body": {"label": "痩身・ボディ", "concerns": []},
+        "hair_removal": {"label": "医療脱毛", "concerns": []},
+        "breast": {"label": "バスト", "concerns": []},
     }
 
     # 悩みキーワードをカテゴリ別に整理
-    eye_keys = ["二重", "一重", "奥二重", "目を大きく", "目元", "まぶた", "クマ", "まぶたが重い"]
-    nose_keys = ["鼻を高く", "鼻筋", "団子鼻", "鼻先", "小鼻", "鼻"]
-    skin_keys = ["シミ", "くすみ", "肝斑", "ニキビ", "毛穴", "しわ", "ほうれい線"]
-    contour_keys = ["小顔", "エラ", "フェイスライン", "二重あご", "あご", "頬"]
+    category_keys = {
+        "eye": ["二重", "一重", "奥二重", "目を大きく", "目元", "まぶた", "クマ", "まぶたが重い"],
+        "nose": ["鼻を高く", "鼻筋", "団子鼻", "鼻先", "小鼻", "鼻"],
+        "skin": ["シミ", "くすみ", "肝斑", "ニキビ", "毛穴", "しわ", "ほうれい線"],
+        "contour": ["小顔", "エラ", "フェイスライン", "二重あご", "あご", "頬"],
+        "anti_aging": ["たるみ", "ハリ", "リフトアップ", "ハイフ", "HIFU", "再生", "PRP", "水光注射", "若返り"],
+        "body": ["痩せたい", "ダイエット", "脂肪吸引", "クールスカルプ", "痩身", "お腹", "太もも"],
+        "hair_removal": ["脱毛", "ムダ毛", "レーザー脱毛", "VIO", "全身脱毛", "ヒゲ"],
+        "breast": ["豊胸", "バスト", "胸"],
+    }
 
-    for k in eye_keys:
-        if k in CONCERN_MAP:
-            categories["eye"]["concerns"].append(k)
-    for k in nose_keys:
-        if k in CONCERN_MAP:
-            categories["nose"]["concerns"].append(k)
-    for k in skin_keys:
-        if k in CONCERN_MAP:
-            categories["skin"]["concerns"].append(k)
-    for k in contour_keys:
-        if k in CONCERN_MAP:
-            categories["contour"]["concerns"].append(k)
+    for cat, keys in category_keys.items():
+        for k in keys:
+            if k in CONCERN_MAP:
+                categories[cat]["concerns"].append(k)
 
     return {
         "categories": categories,

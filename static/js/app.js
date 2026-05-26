@@ -288,6 +288,10 @@ async function loadProcs(category = '') {
         { key: 'nose', label: '鼻' },
         { key: 'skin', label: '肌' },
         { key: 'contour', label: '輪郭' },
+        { key: 'anti_aging', label: 'エイジング' },
+        { key: 'body', label: '痩身' },
+        { key: 'hair_removal', label: '脱毛' },
+        { key: 'breast', label: 'バスト' },
     ];
     filterEl.innerHTML = cats.map(c =>
         `<button class="filter-btn ${c.key === category ? 'active' : ''}"
@@ -315,11 +319,17 @@ async function loadProcs(category = '') {
                 low: '負担が軽い',
                 medium: '標準的',
                 high: '負担が大きい',
+                non_invasive: '非侵襲',
+                injection: '注射',
+                surgical: '手術',
             }[p.invasiveness] || '';
             const invClass = {
                 low: 'badge-low',
                 medium: 'badge-medium',
                 high: 'badge-high',
+                non_invasive: 'badge-low',
+                injection: 'badge-medium',
+                surgical: 'badge-high',
             }[p.invasiveness] || '';
 
             return `
