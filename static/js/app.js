@@ -1280,6 +1280,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初期状態をhistoryに記録
     history.replaceState({ page: initialPage }, '', initialPage === 'home' ? '/' : `/${initialPage}`);
     navigate(initialPage);
+
+    // 法的行動支援ツールの読み込み
+    loadTools();
 });
 
 // ==========================================
@@ -1331,4 +1334,262 @@ document.addEventListener('click', (e) => {
     btn.style.overflow = 'hidden';
     btn.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
+});
+
+// ==========================================
+// 法的行動支援ツール
+// ==========================================
+
+/**
+ * ツール一覧を取得してカードグリッドに描画する
+ * ページ読み込み時にDOMContentLoaded内から呼ばれる
+ */
+async function loadTools() {
+    const grid = document.getElementById('tools-grid');
+    if (!grid) return; // ツールセクションが無い場合はスキップ
+
+    grid.innerHTML = '<p class="loading-text">読み込み中</p>';
+
+    try {
+        const data = await api('/api/advisor/tools');
+        const tools = data.tools || [];
+
+        if (tools.length === 0) {
+            grid.innerHTML = '<p class="loading-text">現在ご利用いただけるツールはありません</p>';
+            return;
+        }
+
+        grid.innerHTML = tools.map(tool => `
+            <div class="tool-card" onclick="openTool('${escapeHtml(tool.id)}')">
+                <span class="tool-card-icon">${escapeHtml(tool.icon || '🔧')}</span>
+                <div class="tool-card-title">${escapeHtml(tool.title)}</div>
+                <div class="tool-card-desc">${escapeHtml(tool.description || '')}</div>
+                ${tool.badge ? `<span class="tool-card-badge">${escapeHtml(tool.badge)}</span>` : ''}
+            </div>
+        `).join('');
+    } catch {
+        grid.innerHTML = '<p class="loading-text">ツールの読み込みに失敗しました</p>';
+    }
+}
+
+/**
+ * ツールカードクリック時にAPIを呼び出し、モーダルで結果を表示する
+ * @param {string} toolId - ツールのID
+ */
+async function openTool(toolId) {
+    // price_checkツールはチャットへ誘導
+    if (toolId === 'price_check') {
+        navigate('advisor');
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            chatInput.value = 'この施術の適正価格を教えてください';
+            chatInput.focus();
+        }
+        showToast('チャットで施術名をお伝えください', 'info');
+        return;
+    }
+
+    // モーダルオーバーレイを取得または作成
+    let overlay = document.getElementById('tool-modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'tool-modal-overlay';
+        overlay.className = 'tool-modal-overlay';
+        overlay.innerHTML = `
+            <div class="tool-modal">
+                <button class="tool-modal-close" onclick="closeToolModal()">&times;</button>
+                <div id="tool-modal-content"></div>
+            </div>
+        `;
+        // オーバーレイ背景クリックで閉じる
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeToolModal();
+        });
+        document.body.appendChild(overlay);
+    }
+
+    const contentEl = document.getElementById('tool-modal-content');
+    contentEl.innerHTML = '<p class="loading-text">読み込み中</p>';
+
+    // モーダルを表示
+    overlay.classList.add('active');
+
+    try {
+        const result = await apiPost(`/api/advisor/tools/${toolId}`, {});
+        contentEl.innerHTML = renderToolModal(toolId, result);
+    } catch {
+        contentEl.innerHTML = '<p class="loading-text">ツールの実行に失敗しました。もう一度お試しください。</p>';
+    }
+}
+
+/**
+ * ツールIDに応じたモーダルコンテンツのHTMLを生成する
+ * @param {string} toolId - ツールのID
+ * @param {object} result - APIから返されたツール実行結果
+ * @returns {string} モーダル内に表示するHTML
+ */
+function renderToolModal(toolId, result) {
+    const title = escapeHtml(result.title || 'ツール結果');
+
+    // テンプレート表示系ツール（クーリングオフ通知書、カルテ開示請求書）
+    if (toolId === 'cooling_off' || toolId === 'medical_records') {
+        const template = result.template || '';
+        const instructions = result.instructions || [];
+        const legalBasis = result.legal_basis || '';
+
+        let html = `<h2>${title}</h2>`;
+
+        if (template) {
+            html += `<h3>テンプレート</h3>`;
+            html += `<pre>${escapeHtml(template)}</pre>`;
+            html += `<button class="tool-copy-btn" onclick="copyTemplate(this.previousElementSibling.textContent)">📋 コピーする</button>`;
+        }
+
+        if (instructions.length > 0) {
+            html += `<h3>使い方・手順</h3>`;
+            html += `<ul>${instructions.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>`;
+        }
+
+        if (legalBasis) {
+            html += `<div class="legal-basis">📖 ${escapeHtml(legalBasis)}</div>`;
+        }
+
+        return html;
+    }
+
+    // チェックリスト系ツール（契約書チェック、クリニック比較）
+    if (toolId === 'contract_check' || toolId === 'clinic_compare') {
+        const checklist = result.checklist || {};
+        const redFlags = result.red_flags || [];
+        const advice = result.advice || '';
+
+        let html = `<h2>${title}</h2>`;
+
+        // カテゴリ別チェックリスト
+        const categories = Object.keys(checklist);
+        if (categories.length > 0) {
+            html += `<h3>チェックリスト</h3>`;
+            categories.forEach(category => {
+                html += `<div class="checklist-category">${escapeHtml(category)}</div>`;
+                const items = checklist[category] || [];
+                html += `<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+            });
+        }
+
+        // 危険信号
+        if (redFlags.length > 0) {
+            html += `<h3>⚠️ 危険信号（レッドフラグ）</h3>`;
+            html += `<ul>${redFlags.map(flag => `<li class="red-flag">${escapeHtml(flag)}</li>`).join('')}</ul>`;
+        }
+
+        // アドバイス
+        if (advice) {
+            html += `<div class="warning-box">💡 ${escapeHtml(advice)}</div>`;
+        }
+
+        return html;
+    }
+
+    // 術後ケアツール
+    if (toolId === 'post_surgery') {
+        const normalSigns = result.normal_signs || [];
+        const warningSigns = result.warning_signs || [];
+        const emergencyContacts = result.emergency_contacts || [];
+
+        let html = `<h2>${title}</h2>`;
+
+        if (normalSigns.length > 0) {
+            html += `<h3>✅ 正常な経過サイン</h3>`;
+            html += `<ul>${normalSigns.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul>`;
+        }
+
+        if (warningSigns.length > 0) {
+            html += `<h3>🚨 要注意サイン（すぐ受診）</h3>`;
+            html += `<ul>${warningSigns.map(s => `<li class="red-flag">${escapeHtml(s)}</li>`).join('')}</ul>`;
+        }
+
+        if (emergencyContacts.length > 0) {
+            html += `<h3>📞 緊急連絡先</h3>`;
+            html += `<ul>${emergencyContacts.map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul>`;
+        }
+
+        return html;
+    }
+
+    // 消費生活センターツール
+    if (toolId === 'consumer_center') {
+        const hotline = result.hotline || '';
+        const prepareBefore = result.prepare_before_call || [];
+        const timelineTemplate = result.timeline_template || '';
+
+        let html = `<h2>${title}</h2>`;
+
+        if (hotline) {
+            html += `<div class="warning-box">📞 消費者ホットライン: <strong>${escapeHtml(hotline)}</strong></div>`;
+        }
+
+        if (prepareBefore.length > 0) {
+            html += `<h3>📋 電話前に準備するもの</h3>`;
+            html += `<ul>${prepareBefore.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+        }
+
+        if (timelineTemplate) {
+            html += `<h3>📝 経緯まとめテンプレート</h3>`;
+            html += `<pre>${escapeHtml(timelineTemplate)}</pre>`;
+            html += `<button class="tool-copy-btn" onclick="copyTemplate(this.previousElementSibling.textContent)">📋 コピーする</button>`;
+        }
+
+        return html;
+    }
+
+    // price_checkはopenTool内で処理済みだが、念のためフォールバック
+    if (toolId === 'price_check') {
+        return `<h2>${title}</h2><p>チャットで施術名をお伝えいただくと、適正価格をお調べします。</p>`;
+    }
+
+    // 未知のツールタイプ: レスポンスをそのまま表示
+    let html = `<h2>${title}</h2>`;
+    if (result.message) {
+        html += `<p>${escapeHtml(result.message)}</p>`;
+    }
+    return html;
+}
+
+/**
+ * ツールモーダルを閉じる
+ */
+function closeToolModal() {
+    const overlay = document.getElementById('tool-modal-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+/**
+ * テンプレートテキストをクリップボードにコピーする
+ * @param {string} text - コピーするテキスト
+ */
+async function copyTemplate(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast('テンプレートをコピーしました', 'success');
+    } catch {
+        // フォールバック: 古いブラウザ用
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('テンプレートをコピーしました', 'success');
+    }
+}
+
+// ESCキーでツールモーダルも閉じる
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeToolModal();
+    }
 });

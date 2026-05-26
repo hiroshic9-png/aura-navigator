@@ -2620,3 +2620,250 @@ body {
         color: var(--accent-hover);
     }
 }
+
+
+/* ==========================================
+ * 法的行動支援ツール
+ * ========================================== */
+
+.tools-section {
+    padding: 4rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-top: 2rem;
+}
+
+.tool-card {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8e0ec);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--accent, #8b6f9a), var(--accent-light, #b69ac5));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tool-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(107, 91, 115, 0.12);
+    border-color: var(--accent, #8b6f9a);
+}
+
+.tool-card:hover::before {
+    opacity: 1;
+}
+
+.tool-card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+    display: block;
+}
+
+.tool-card-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text, #1a1118);
+    margin-bottom: 0.5rem;
+}
+
+.tool-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted, #7d6b86);
+    line-height: 1.6;
+}
+
+.tool-card-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    margin-top: 0.8rem;
+    background: rgba(139, 111, 154, 0.1);
+    color: var(--accent, #8b6f9a);
+}
+
+/* ツールモーダル */
+.tool-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.tool-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tool-modal {
+    background: var(--surface, #fff);
+    border-radius: 16px;
+    max-width: 700px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 2rem;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.tool-modal-overlay.active .tool-modal {
+    transform: translateY(0);
+}
+
+.tool-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted, #7d6b86);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.tool-modal-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.tool-modal h2 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-right: 2rem;
+}
+
+.tool-modal h3 {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent, #8b6f9a);
+}
+
+.tool-modal pre {
+    background: var(--surface-alt, #f8f5fa);
+    border: 1px solid var(--border, #e8e0ec);
+    border-radius: 8px;
+    padding: 1.2rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+}
+
+.tool-modal ul {
+    padding-left: 1.2rem;
+    margin: 0.5rem 0;
+}
+
+.tool-modal li {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text, #1a1118);
+    margin-bottom: 0.3rem;
+}
+
+.tool-modal .legal-basis {
+    background: rgba(139, 111, 154, 0.08);
+    border-left: 3px solid var(--accent, #8b6f9a);
+    padding: 0.8rem 1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted, #7d6b86);
+    line-height: 1.6;
+    border-radius: 0 8px 8px 0;
+    margin-top: 1.5rem;
+}
+
+.tool-modal .warning-box {
+    background: #fff3e0;
+    border-left: 3px solid #ff9800;
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1rem 0;
+}
+
+.tool-modal .checklist-category {
+    font-weight: 600;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+}
+
+.tool-modal .red-flag {
+    color: #c62828;
+    font-weight: 500;
+}
+
+.tool-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: var(--accent, #8b6f9a);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background 0.2s;
+}
+
+.tool-copy-btn:hover {
+    background: var(--accent-dark, #6b5070);
+}
+
+@media (max-width: 600px) {
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+    .tool-modal {
+        padding: 1.5rem;
+        max-height: 90vh;
+    }
+}

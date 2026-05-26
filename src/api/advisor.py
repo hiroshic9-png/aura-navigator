@@ -854,3 +854,41 @@ async def advisor_status():
             "example": "AURA_ANTHROPIC_API_KEY=sk-ant-...",
         } if not is_llm_available() else None,
     }
+
+
+# ==========================================
+# 法的行動支援ツール
+# ==========================================
+
+
+@router.get("/tools")
+async def list_legal_tools():
+    """利用可能な法的行動支援ツール一覧"""
+    from src.advisor.legal_tools import get_tools_list
+    return {
+        "tools": get_tools_list(),
+        "description": "美容医療の患者さんが自分で行動を起こすためのテンプレートとチェックリスト。",
+        "legal_note": "情報とツールの提供であり、法律相談や医療相談ではありません。",
+    }
+
+
+class ToolRequest(BaseModel):
+    """ツール実行リクエスト"""
+    params: dict = Field(default_factory=dict, description="ツール固有のパラメータ")
+
+
+@router.post("/tools/{tool_id}")
+async def execute_legal_tool(tool_id: str, request: ToolRequest):
+    """法的行動支援ツールを実行"""
+    from src.advisor.legal_tools import execute_tool
+
+    result = execute_tool(tool_id, request.params)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"ツール '{tool_id}' は存在しません")
+
+    return {
+        "tool_id": tool_id,
+        "result": result,
+        "legal_note": "この情報は一般的な知識の整理であり、法律相談ではありません。具体的な法的問題については弁護士にご相談ください。",
+    }
+
