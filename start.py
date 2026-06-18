@@ -37,25 +37,23 @@ def download_db(target: Path) -> bool:
 def main():
     """起動前処理とuvicorn起動"""
     data_dir = Path("/data")
-    db_target = data_dir / "aura.db"
-    db_bundled = Path("/app/data/aura.db")
+    app_data_dir = Path("/app/data")
+    db_bundled = app_data_dir / "aura.db"
 
-    # 永続ディスクにDBがなければ初期化
-    if data_dir.exists() and not db_target.exists():
-        if db_bundled.exists():
-            # バンドルDBが存在する場合はコピー
-            print(f"[起動] 初期DBをコピー: {db_bundled} → {db_target}")
-            shutil.copy2(db_bundled, db_target)
-            print(f"[起動] コピー完了 ({db_target.stat().st_size / 1024 / 1024:.1f}MB)")
-        else:
-            # バンドルDBがない場合はダウンロードを試行
-            print("[起動] バンドルDBが見つかりません。ダウンロードを試行します。")
-            if not download_db(db_target):
-                print("[起動] ⚠ DBなしで起動します。一部機能が制限されます。")
+    # DBの配置先を決定（永続ディスクがあればそちら、なければアプリ内）
+    if data_dir.exists() and data_dir.is_mount():
+        db_target = data_dir / "aura.db"
+        print("[起動] 永続ディスク検出: /data")
+    else:
+        db_target = db_bundled
+        app_data_dir.mkdir(parents=True, exist_ok=True)
+        print("[起動] 永続ディスクなし: /app/data を使用")
 
-    # ローカル環境（/dataがない場合）
-    if not data_dir.exists():
-        print("[起動] ローカル環境で起動（永続ディスクなし）")
+    # DBがなければ初期化
+    if not db_target.exists():
+        print("[起動] DBが見つかりません。ダウンロードを試行します。")
+        if not download_db(db_target):
+            print("[起動] ⚠ DBなしで起動します。一部機能が制限されます。")
 
     # uvicorn起動
     port = int(os.environ.get("PORT", "8400"))
