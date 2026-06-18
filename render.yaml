@@ -11,7 +11,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: AURA_DATABASE_URL
-        value: sqlite+aiosqlite:///app/data/aura.db
+        value: sqlite+aiosqlite:///data/aura.db
       - key: AURA_ANTHROPIC_API_KEY
         sync: false  # Renderダッシュボードで手動設定
       - key: AURA_GOOGLE_MAPS_API_KEY
