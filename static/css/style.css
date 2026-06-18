@@ -10511,11 +10511,11 @@ body {
     aspect-ratio: 3 / 4;
 }
 
-/* 目もと — 横長画像の上部30%を表示（目の位置は顔の上半分） */
+/* 目もと — 横長画像の中央を表示（目のアップ写真は中央に目がある） */
 .cp-cat-eyes .cp-card-img img,
 .cp-cat-eyes .case-photo-img img,
 [data-category="eyes"] .cp-card-img img {
-    object-position: center 25%;
+    object-position: center center;
 }
 
 /* 鼻 — 顔の中央やや上を表示 */
