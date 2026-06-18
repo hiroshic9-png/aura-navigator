@@ -13,8 +13,12 @@
    - Aesop, Glossier, SSENSE, Monocle誌を参照
 
    禁止事項:
-   - ゴールド系アクセント（--accent等）
-   - ローズ系アクセント（
+   - ゴールド系アクセント
+   - ローズ系アクセント
+   - ダークモード（廃止済み）
+   ========================================== */
+
+* {
     margin: 0;
     padding: 0;
 }
@@ -60,89 +64,13 @@
     /* 影 — 最小限 */
     --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.04);
     --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.06);
-}
+    --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.12);
 
-/* ダークモード — システム設定または手動切替 */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --bg:             #1A1A1C;
-        --bg-warm:        #222224;
-        --bg-warm-alt:    #2A2A2C;
-        --surface:        #2C2C2E;
-        --surface:  rgba(44, 44, 46, 0.8);
-        --border:         #3A3A3C;
-        --border-subtle:  #333335;
-
-        --text:           #F5F5F7;
-        --text-secondary: #A1A1A6;
-        --text-muted:     #8E8E93;
-
-        --accent:         #F5F5F7;
-        --accent-hover:   #E5E5EA;
-        --accent-soft:    #2C2C2E;
-
-        --accent:      #D4B896;
-        --accent-soft: #2D2820;
-        --accent-hover:#E0C9A8;
-
-        /* ローズ系ダークバリアント */
-        --accent-soft:      #2E2224;
-        --accent-hover:     #D49A9F;
-        --accent:     #8BB8D0;
-        --accent-soft: #1E2A32;
-
-        --success:        #4CAF7D;
-        --success-bg:     #1C2E24;
-        --caution:        #E07065;
-        --caution-bg:     #2E1F1D;
-        --warning:        #D4A94E;
-        --warning-bg:     #2C2618;
-
-        --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.2);
-        --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.3);
-        --shadow-md:    0 12px 40px rgba(0, 0, 0, 0.4);
-        --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.5);
-    }
-}
-
-[data-theme="dark"] {
-    --bg:             #1A1A1C;
-    --bg-warm:        #222224;
-    --bg-warm-alt:    #2A2A2C;
-    --surface:        #2C2C2E;
-    --surface:  rgba(44, 44, 46, 0.8);
-    --border:         #3A3A3C;
-    --border-subtle:  #333335;
-
-    --text:           #F5F5F7;
-    --text-secondary: #A1A1A6;
-    --text-muted:     #8E8E93;
-
-    --accent:         #F5F5F7;
-    --accent-hover:   #E5E5EA;
-    --accent-soft:    #2C2C2E;
-
-    --accent:      #D4B896;
-    --accent-soft: #2D2820;
-    --accent-hover:#E0C9A8;
-
-    /* ローズ系ダークバリアント */
-    --accent-soft:      #2E2224;
-    --accent-hover:     #D49A9F;
-    --accent:     #8BB8D0;
-    --accent-soft: #1E2A32;
-
-    --success:        #4CAF7D;
-    --success-bg:     #1C2E24;
-    --caution:        #E07065;
-    --caution-bg:     #2E1F1D;
-    --warning:        #D4A94E;
-    --warning-bg:     #2C2618;
-
-    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.3);
-    --shadow-md:    0 12px 40px rgba(0, 0, 0, 0.4);
-    --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.5);
+    /* 追加トークン */
+    --bg-elevated:  #f9f8f6;
+    --card-border:  #eae8e4;
+    --accent-blue:  #3b82f6;
+    --primary:      #2c4a3e;
 }
 
 
@@ -1497,16 +1425,6 @@ main {
     flex-shrink: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-    .clinic-tag--chain {
-        border-color: var(--accent-blue);
-        color: var(--accent-blue);
-    }
-    .clinic-tag--general {
-        border-color: #34d399;
-        color: #34d399;
-    }
-}
 
 .clinic-item-rating {
     display: flex;
@@ -4189,90 +4107,7 @@ body {
 }
 
 
-/* ------------------------------------------
-   ダークモードの微調整
-   ハードコードされたrgba背景色のオーバーライド
-   ------------------------------------------ */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) img {
-        opacity: 0.92;
-    }
-    :root:not([data-theme="light"]) ::selection {
-        background: var(--accent-soft);
-    }
-    :root:not([data-theme="light"]) #site-header {
-        background: rgba(26, 26, 28, 0.85);
-        border-bottom-color: rgba(58, 58, 60, 0.6);
-    }
-    :root:not([data-theme="light"]) .detail-panel {
-        background: rgba(44, 44, 46, 0.95);
-    }
-    :root:not([data-theme="light"]) .hero {
-        background:
-            radial-gradient(ellipse at 20% 50%, rgba(212, 184, 150, 0.06) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 20%, rgba(42, 42, 44, 0.6) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 100%, rgba(34, 34, 36, 0.8) 0%, transparent 60%),
-            #1A1A1C;
-    }
-    :root:not([data-theme="light"]) .bottom-nav {
-        background: rgba(26, 26, 28, 0.9);
-        border-top-color: rgba(58, 58, 60, 0.6);
-    }
-}
-[data-theme="dark"] img {
-    opacity: 0.92;
-}
-[data-theme="dark"] ::selection {
-    background: var(--accent-soft);
-}
-[data-theme="dark"] #site-header {
-    background: rgba(26, 26, 28, 0.85);
-    border-bottom-color: rgba(58, 58, 60, 0.6);
-}
-[data-theme="dark"] .detail-panel {
-    background: rgba(44, 44, 46, 0.95);
-}
-[data-theme="dark"] .hero {
-    background:
-        radial-gradient(ellipse at 20% 50%, rgba(212, 184, 150, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(42, 42, 44, 0.6) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 100%, rgba(34, 34, 36, 0.8) 0%, transparent 60%),
-        #1A1A1C;
-}
-[data-theme="dark"] .bottom-nav {
-    background: rgba(26, 26, 28, 0.9);
-    border-top-color: rgba(58, 58, 60, 0.6);
-}
 
-
-/* ------------------------------------------
-   テーマトグルボタン
-   ------------------------------------------ */
-.theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: color var(--transition), border-color var(--transition);
-    flex-shrink: 0;
-}
-.theme-toggle:hover {
-    color: var(--text);
-    border-color: var(--text-muted);
-}
-.theme-icon--dark { display: none; }
-[data-theme="dark"] .theme-icon--light { display: none; }
-[data-theme="dark"] .theme-icon--dark { display: block; }
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .theme-icon--light { display: none; }
-    :root:not([data-theme="light"]) .theme-icon--dark { display: block; }
-}
 
 
 /* ------------------------------------------
@@ -5749,19 +5584,6 @@ body {
     gap: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-    .proc-clinic-doctor-badge {
-        background: var(--accent);
-    }
-    .proc-clinic-market--affordable {
-        color: #66bb6a;
-        background: rgba(102, 187, 106, 0.12);
-    }
-    .proc-clinic-market--high {
-        color: #ff9800;
-        background: rgba(255, 152, 0, 0.1);
-    }
-}
 
 /* === Phase 67: 専門性マッチバッジ === */
 
@@ -5791,31 +5613,6 @@ body {
     border: 1px solid rgba(138, 138, 138, 0.25);
 }
 
-/* ダークモード: specialty-match-badge */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .specialty-match-badge--high {
-        color: #e0c9a8;
-        background: var(--accent), rgba(219, 184, 92, 0.15));
-        border-color: rgba(201, 168, 124, 0.35);
-    }
-    :root:not([data-theme="light"]) .specialty-match-badge--medium {
-        color: var(--text-muted);
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.12);
-    }
-}
-
-[data-theme="dark"] .specialty-match-badge--high {
-    color: #e0c9a8;
-    background: var(--accent), rgba(219, 184, 92, 0.15));
-    border-color: rgba(201, 168, 124, 0.35);
-}
-
-[data-theme="dark"] .specialty-match-badge--medium {
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-}
 
 /* ソートボタン */
 .proc-sort-btn {
@@ -6503,45 +6300,6 @@ body {
     }
 }
 
-/* ダークモード対応 */
-[data-theme="dark"] .dd-breakdown,
-[data-theme="dark"] .dd-clinic-card,
-[data-theme="dark"] .dd-note {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .dd-clinic-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(201, 168, 124, 0.2);
-}
-
-[data-theme="dark"] .chat-starter-card {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .chat-starter-card:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: var(--accent);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .dd-breakdown,
-    :root:not([data-theme="light"]) .dd-clinic-card,
-    :root:not([data-theme="light"]) .dd-note {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .chat-starter-card {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .chat-starter-card:hover {
-        background: rgba(255, 255, 255, 0.07);
-        border-color: var(--accent);
-    }
-}
 
 /* ==========================================
    Phase 21: チャットリセットボタン
@@ -6580,26 +6338,6 @@ body {
     transform: rotate(-180deg);
 }
 
-[data-theme="dark"] .chat-reset-btn {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .chat-reset-btn:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: var(--accent);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .chat-reset-btn {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .chat-reset-btn:hover {
-        background: rgba(255, 255, 255, 0.07);
-        border-color: var(--accent);
-    }
-}
 
 /* セッション履歴ボタン */
 .chat-history-btn {
@@ -6895,34 +6633,6 @@ body {
     transform: translateY(-1px);
 }
 
-/* ダークモード */
-[data-theme="dark"] .star-dist-bar {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .review-filter-btn {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .review-more-btn {
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-[data-theme="dark"] .review-advisor-link {
-    background: var(--accent), rgba(201, 168, 124, 0.08));
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .star-dist-bar {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .review-filter-btn {
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .review-more-btn {
-        border-color: rgba(255, 255, 255, 0.15);
-    }
-}
 
 @media (max-width: 480px) {
     .star-dist-header {
@@ -7063,33 +6773,6 @@ body {
     margin-left: 0.5rem;
 }
 
-/* ダークモード */
-[data-theme="dark"] .global-search-bar {
-    background: var(--bg);
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="dark"] .global-search-input {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .gs-item:hover {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .global-search-bar {
-        background: var(--bg);
-        border-color: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-    :root:not([data-theme="light"]) .global-search-input {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-}
 
 @media (max-width: 480px) {
     .global-search-bar {
@@ -7451,26 +7134,6 @@ body {
     letter-spacing: 0.05em;
 }
 
-/* ダークモード */
-[data-theme="dark"] .prep-sheet-content {
-    background: var(--bg);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="dark"] .ps-proc-card,
-[data-theme="dark"] .ps-clinic-card {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .prep-sheet-content {
-        background: var(--bg);
-    }
-    :root:not([data-theme="light"]) .ps-proc-card,
-    :root:not([data-theme="light"]) .ps-clinic-card {
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-}
 
 @media (max-width: 480px) {
     .prep-sheet-content {
@@ -7958,57 +7621,6 @@ body {
     line-height: 1.4;
 }
 
-/* ダークモード対応 */
-[data-theme="dark"] .timeline-phase-num {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .tl-do { color: #69f0ae; }
-[data-theme="dark"] .tl-avoid { color: #ff8a80; }
-
-[data-theme="dark"] .rs-bar {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .rs-topic-bar-bg {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .rs-hl-good { background: rgba(46, 125, 50, 0.1); }
-[data-theme="dark"] .rs-hl-concern { background: rgba(198, 40, 40, 0.1); }
-
-[data-theme="dark"] .rs-redflags {
-    background: rgba(244, 67, 54, 0.1);
-}
-
-[data-theme="dark"] .notification-banner {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .notif-header {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .proc-compare-checkbox-label {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .share-btn {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .timeline-phase-num {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .rs-bar,
-    :root:not([data-theme="light"]) .rs-topic-bar-bg {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    :root:not([data-theme="light"]) .notification-banner {
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-}
 
 @media (max-width: 480px) {
     .rs-highlights {
@@ -8020,46 +7632,6 @@ body {
     }
 }
 
-/* ダークモード漏れ修正 */
-[data-theme="dark"] .chat-input-row {
-    background: rgba(30, 30, 30, 0.9);
-    border-top-color: rgba(255, 255, 255, 0.08);
-}
-[data-theme="dark"] .rec-caution-badge {
-    color: #ff6b6b;
-    background: rgba(255, 107, 107, 0.1);
-}
-[data-theme="dark"] .rec-reason-tag {
-    background: rgba(255, 255, 255, 0.06);
-}
-[data-theme="dark"] .rec-review-badge--good {
-    color: #69f0ae;
-}
-[data-theme="dark"] .rec-review-badge--bad {
-    color: #ff8a80;
-}
-[data-theme="dark"] .transparency-badge--mid {
-    color: #90caf9;
-    background: rgba(144, 202, 249, 0.1);
-}
-[data-theme="dark"] .market-badge--below {
-    color: #69f0ae;
-}
-[data-theme="dark"] .market-badge--above {
-    color: #ff8a80;
-}
-[data-theme="dark"] .market-badge--average {
-    color: #ffd54f;
-}
-[data-theme="dark"] .risk-badge-high {
-    color: #ff8a80;
-}
-[data-theme="dark"] .risk-badge-medium {
-    color: #ffd54f;
-}
-[data-theme="dark"] .risk-badge-low {
-    color: #69f0ae;
-}
 
 /* ------------------------------------------
    Phase 52: モバイル検索体験最適化
@@ -8197,23 +7769,6 @@ body {
     }
 }
 
-/* ダークモード対応 */
-[data-theme="dark"] .filter-toggle-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .filter-toggle-btn[aria-expanded="true"] {
-    background: rgba(201, 168, 124, 0.15);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .filter-toggle-btn {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-}
-
 
 /* ------------------------------------------
    Phase 55: 類似クリニック推薦
@@ -8337,31 +7892,6 @@ body {
     background: var(--accent-soft);
     color: var(--warning);
     border: 1px solid rgba(201, 168, 124, 0.2);
-}
-
-/* ダークモード対応 */
-[data-theme="dark"] .similar-clinic-card {
-    background: var(--surface);
-    border-color: var(--border);
-}
-
-[data-theme="dark"] .similar-reason-tag {
-    background: rgba(212, 184, 150, 0.1);
-    border-color: rgba(212, 184, 150, 0.2);
-    color: var(--accent);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .similar-clinic-card {
-        background: var(--surface);
-        border-color: var(--border);
-    }
-
-    :root:not([data-theme="light"]) .similar-reason-tag {
-        background: rgba(212, 184, 150, 0.1);
-        border-color: rgba(212, 184, 150, 0.2);
-        color: var(--accent);
-    }
 }
 
 
@@ -8853,50 +8383,6 @@ body {
     border-bottom: none;
 }
 
-/* --- ダークモード --- */
-[data-theme="dark"] .fc-bar-track {
-    background: var(--bg-warm-alt);
-}
-
-[data-theme="dark"] .fc-sentiment-card,
-[data-theme="dark"] .fc-traits-card {
-    background: var(--bg-warm-alt);
-}
-
-[data-theme="dark"] .fc-price-table th {
-    background: var(--bg-warm-alt);
-}
-
-[data-theme="dark"] .fc-insights {
-    background: rgba(212, 184, 150, 0.08);
-}
-
-[data-theme="dark"] .fc-price-best {
-    background: rgba(212, 184, 150, 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .fc-bar-track {
-        background: var(--bg-warm-alt);
-    }
-
-    :root:not([data-theme="light"]) .fc-sentiment-card,
-    :root:not([data-theme="light"]) .fc-traits-card {
-        background: var(--bg-warm-alt);
-    }
-
-    :root:not([data-theme="light"]) .fc-price-table th {
-        background: var(--bg-warm-alt);
-    }
-
-    :root:not([data-theme="light"]) .fc-insights {
-        background: rgba(212, 184, 150, 0.08);
-    }
-
-    :root:not([data-theme="light"]) .fc-price-best {
-        background: rgba(212, 184, 150, 0.12);
-    }
-}
 
 /* --- モバイル最適化 --- */
 @media (max-width: 600px) {
@@ -9290,56 +8776,6 @@ body {
     }
 }
 
-/* --- ダークモード対応 --- */
-[data-theme="dark"] .stat-card {
-    background: rgba(44, 44, 46, 0.7);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="dark"] .dashboard-section {
-    background: var(--surface);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="dark"] .coverage-bar-bg {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .grade-donut-center {
-    background: var(--surface);
-}
-
-[data-theme="dark"] .freshness-item {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="dark"] .dashboard-link {
-    color: var(--text-muted);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .stat-card {
-        background: rgba(44, 44, 46, 0.7);
-        border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    :root:not([data-theme="light"]) .dashboard-section {
-        background: var(--surface);
-        border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    :root:not([data-theme="light"]) .coverage-bar-bg {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    :root:not([data-theme="light"]) .grade-donut-center {
-        background: var(--surface);
-    }
-
-    :root:not([data-theme="light"]) .freshness-item {
-        background: rgba(255, 255, 255, 0.05);
-    }
-}
 
 /* ==========================================
    Phase 62: 口コミトレンドバッジ
@@ -9434,63 +8870,6 @@ body {
     height: 12px;
 }
 
-/* --- ダークモード対応 --- */
-[data-theme="dark"] .trend-badge--improving {
-    background: rgba(61, 139, 110, 0.15);
-    border-color: rgba(61, 139, 110, 0.25);
-}
-
-[data-theme="dark"] .trend-badge--stable {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .trend-badge--declining {
-    background: rgba(194, 94, 82, 0.15);
-    border-color: rgba(194, 94, 82, 0.25);
-}
-
-[data-theme="dark"] .trend-mini--improving {
-    background: rgba(61, 139, 110, 0.15);
-}
-
-[data-theme="dark"] .trend-mini--stable {
-    background: rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="dark"] .trend-mini--declining {
-    background: rgba(194, 94, 82, 0.15);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .trend-badge--improving {
-        background: rgba(61, 139, 110, 0.15);
-        border-color: rgba(61, 139, 110, 0.25);
-    }
-
-    :root:not([data-theme="light"]) .trend-badge--stable {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    :root:not([data-theme="light"]) .trend-badge--declining {
-        background: rgba(194, 94, 82, 0.15);
-        border-color: rgba(194, 94, 82, 0.25);
-    }
-
-    :root:not([data-theme="light"]) .trend-mini--improving {
-        background: rgba(61, 139, 110, 0.15);
-    }
-
-    :root:not([data-theme="light"]) .trend-mini--stable {
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    :root:not([data-theme="light"]) .trend-mini--declining {
-        background: rgba(194, 94, 82, 0.15);
-    }
-}
-
 
 /* ------------------------------------------
    データ充実度・口コミ欠損表示
@@ -9570,59 +8949,6 @@ body {
     font-weight: 500;
     font-size: 0.72rem;
     margin-top: 0.25rem;
-}
-
-/* --- ダークモード対応 --- */
-[data-theme="dark"] .no-review-notice {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .data-completeness--high {
-    background: rgba(61, 139, 110, 0.15);
-    border-color: rgba(61, 139, 110, 0.25);
-}
-
-[data-theme="dark"] .data-completeness--medium {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .data-completeness--low {
-    background: rgba(176, 141, 62, 0.15);
-    border-color: rgba(176, 141, 62, 0.25);
-}
-
-[data-theme="dark"] .score-info-tooltip {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .no-review-notice {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    :root:not([data-theme="light"]) .data-completeness--high {
-        background: rgba(61, 139, 110, 0.15);
-        border-color: rgba(61, 139, 110, 0.25);
-    }
-
-    :root:not([data-theme="light"]) .data-completeness--medium {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    :root:not([data-theme="light"]) .data-completeness--low {
-        background: rgba(176, 141, 62, 0.15);
-        border-color: rgba(176, 141, 62, 0.25);
-    }
-
-    :root:not([data-theme="light"]) .score-info-tooltip {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-    }
 }
 
 
@@ -9777,25 +9103,6 @@ body {
     }
 }
 
-/* ダークモード */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .legal-table th {
-        background: var(--bg-warm-alt);
-    }
-
-    :root:not([data-theme="light"]) .footer-legal-links {
-        border-top-color: rgba(255, 255, 255, 0.06);
-    }
-}
-
-[data-theme="dark"] .legal-table th {
-    background: var(--bg-warm-alt);
-}
-
-[data-theme="dark"] .footer-legal-links {
-    border-top-color: rgba(255, 255, 255, 0.06);
-}
-
 
 /* ------------------------------------------
    価格ソースバッジ
@@ -9862,40 +9169,6 @@ body {
     display: block;
     font-size: 0.6rem;
     margin-top: 2px;
-}
-
-/* ダークモード対応: data-theme="dark" */
-[data-theme="dark"] .price-source--official {
-    background: rgba(76, 175, 80, 0.18);
-    color: #81c784;
-}
-
-[data-theme="dark"] .price-source--estimated {
-    background: rgba(255, 152, 0, 0.18);
-    color: #ffb74d;
-}
-
-[data-theme="dark"] .price-source--inferred {
-    background: rgba(158, 158, 158, 0.18);
-    color: #bdbdbd;
-}
-
-/* ダークモード対応: prefers-color-scheme */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .price-source--official {
-        background: rgba(76, 175, 80, 0.18);
-        color: #81c784;
-    }
-
-    :root:not([data-theme="light"]) .price-source--estimated {
-        background: rgba(255, 152, 0, 0.18);
-        color: #ffb74d;
-    }
-
-    :root:not([data-theme="light"]) .price-source--inferred {
-        background: rgba(158, 158, 158, 0.18);
-        color: #bdbdbd;
-    }
 }
 
 
@@ -10086,59 +9359,6 @@ body {
     margin-top: 12px;
 }
 
-/* ダークモード — 人気施術 + トラブルセクション */
-[data-theme="dark"] .popular-card-price {
-    color: var(--text-muted);
-}
-[data-theme="dark"] .satisfaction-bar {
-    background: rgba(255,255,255,0.12);
-}
-[data-theme="dark"] .trouble-subtitle {
-    color: var(--text-muted);
-}
-[data-theme="dark"] .trouble-bar-label {
-    color: var(--text-muted);
-}
-[data-theme="dark"] .trouble-card {
-    background: var(--surface);
-    border-color: rgba(196, 135, 140, 0.2);
-}
-[data-theme="dark"] .trouble-source {
-    color: var(--text-muted);
-}
-[data-theme="dark"] 
-[data-theme="dark"] .hero-cta--secondary:hover {
-    background: rgba(44,44,46,0.9);
-}
-[data-theme="dark"] 
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .popular-card-price {
-        color: var(--text-muted);
-    }
-    :root:not([data-theme="light"]) .satisfaction-bar {
-        background: rgba(255,255,255,0.12);
-    }
-    :root:not([data-theme="light"]) .trouble-subtitle {
-        color: var(--text-muted);
-    }
-    :root:not([data-theme="light"]) .trouble-bar-label {
-        color: var(--text-muted);
-    }
-    :root:not([data-theme="light"]) .trouble-card {
-        background: var(--surface);
-        border-color: rgba(196, 135, 140, 0.2);
-    }
-    :root:not([data-theme="light"]) .trouble-source {
-        color: var(--text-muted);
-    }
-    :root:not([data-theme="light"]) 
-    :root:not([data-theme="light"]) .hero-cta--secondary:hover {
-        background: rgba(44,44,46,0.9);
-    }
-    :root:not([data-theme="light"]) 
-}
-
 
 /* ------------------------------------------
    おすすめクリニック推薦セクション
@@ -10270,33 +9490,6 @@ body {
     line-height: 1.6;
 }
 
-/* ダークモード対応: data-theme="dark" */
-[data-theme="dark"] .recommended-section {
-    background: var(--accent), var(--bg-warm));
-}
-
-[data-theme="dark"] .recommended-card {
-    border-color: var(--border);
-}
-
-[data-theme="dark"] .recommended-card:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-/* ダークモード対応: prefers-color-scheme */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .recommended-section {
-        background: var(--accent), var(--bg-warm));
-    }
-
-    :root:not([data-theme="light"]) .recommended-card {
-        border-color: var(--border);
-    }
-
-    :root:not([data-theme="light"]) .recommended-card:hover {
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    }
-}
 
 /* ------------------------------------------
    医師写真サムネイル（カード一覧用）

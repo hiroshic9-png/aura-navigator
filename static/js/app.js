@@ -132,11 +132,7 @@ function showError(containerId, message, retryFn) {
     }
 }
 
-// テーマ初期化（フラッシュ防止のため即座実行）
-(function() {
-    const saved = localStorage.getItem('aura-theme');
-    if (saved) document.documentElement.setAttribute('data-theme', saved);
-})();
+
 
 // ==========================================
 // フォーカストラップ — アクセシビリティ
@@ -3178,18 +3174,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 法的行動支援ツールの読み込み
     loadTools();
 
-    // ダークモード切替ボタンのイベントリスナー
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const isDark = current === 'dark' ||
-                (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            const next = isDark ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('aura-theme', next);
-        });
-    }
+
 
     // --- アクセシビリティ: 悩みカードにキーボード操作対応 ---
     // Enter/Spaceキーで悩みカードをクリック可能にする
