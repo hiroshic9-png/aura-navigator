@@ -282,12 +282,13 @@ main {
 }
 
 .hero-lead {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
     margin-bottom: 0;
+    padding-bottom: 0;
     font-size: 0.82rem;
     font-weight: 300;
     color: var(--text-secondary);
-    line-height: 2.0;
+    line-height: 1.8;
 }
 
 /* CTAボタングループ */
@@ -327,7 +328,7 @@ main {
    カード形式、SVGアイコン付き
    ------------------------------------------ */
 .concern-section {
-    padding: 0.75rem 0 1.5rem;
+    padding: 0.5rem 0 1.5rem;
     border-bottom: 1px solid var(--border);
 }
 
@@ -1290,6 +1291,15 @@ main {
     background-color: var(--bg-warm);
     position: relative;
     overflow: hidden;
+}
+
+/* サムネイルなし — 病院アイコンプレースホルダー */
+.clinic-item-thumb--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* サムネイル画像 — imgタグ版（loading="lazy"対応） */
@@ -4869,19 +4879,19 @@ body {
 .doctor-cert-tag {
     font-size: 0.72rem;
     padding: 2px 8px;
-    background: var(--accent), rgba(212, 184, 150, 0.08));
-    border: 1px solid rgba(212, 184, 150, 0.3);
+    background: #f5f5f5;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: var(--radius);
-    color: var(--accent);
+    color: var(--text);
     font-weight: 500;
     white-space: nowrap;
 }
 
 .doctor-cert-tag--jsaps {
-    background: var(--accent);
+    background: #f0f0f0;
     color: #1A1A1A;
     font-weight: 700;
-    border: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
     letter-spacing: 0.03em;
 }
 
@@ -9527,7 +9537,7 @@ body {
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    border: 2px solid var(--accent);
+    border: 2px solid rgba(0, 0, 0, 0.08);
     box-shadow: 0 2px 8px rgba(201, 168, 124, 0.2);
 }
 

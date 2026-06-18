@@ -1230,10 +1230,10 @@ async function searchClinics(page = 1) {
                 transparencyBadge = `<span class="transparency-badge transparency-badge--${level}">透明性 ${Math.round(c.transparency_score)}</span>`;
             }
 
-            // サムネイル画像（Google写真がある場合）
+            const clinicIconSvg = '<div class="clinic-item-thumb clinic-item-thumb--placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4"/><line x1="9" y1="9" x2="9" y2="9.01"/><line x1="15" y1="9" x2="15" y2="9.01"/><line x1="9" y1="13" x2="9" y2="13.01"/><line x1="15" y1="13" x2="15" y2="13.01"/></svg></div>';
             const thumbHtml = c.thumbnail_ref
-                ? `<div class="clinic-item-thumb"><img src="/api/clinics/${escapeHtml(c.id)}/photo?ref=${encodeURIComponent(c.thumbnail_ref)}&maxwidth=200" alt="${escapeHtml(c.name)}の写真" loading="lazy" class="clinic-item-thumb-img"></div>`
-                : '';
+                ? `<div class="clinic-item-thumb"><img src="/api/clinics/${escapeHtml(c.id)}/photo?ref=${encodeURIComponent(c.thumbnail_ref)}&maxwidth=200" alt="${escapeHtml(c.name)}の写真" loading="lazy" class="clinic-item-thumb-img" onerror="this.parentElement.outerHTML=clinicIconSvg"></div>`
+                : clinicIconSvg;
             const hasThumb = c.thumbnail_ref ? ' clinic-item--has-thumb' : '';
 
             // 比較チェックボックス
@@ -4375,11 +4375,16 @@ function renderBrowsingHistory() {
         return;
     }
 
+    // 医師写真サムネイル（写真なしの場合はSVGシルエット）
+    const silhouetteSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    const hospitalSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><path d="M3 21h18M3 10h18M5 10V7a2 2 0 012-2h10a2 2 0 012 2v3M9 21v-6a1 1 0 011-1h4a1 1 0 011 1v6"/></svg>';
+
     section.style.display = '';
     listEl.innerHTML = items.map(item => {
         const time = item.timestamp ? new Date(item.timestamp).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
         return `
             <div class="history-item" onclick="showClinicDetail('${escapeHtml(item.id)}')">
+                <div class="history-item-thumb"><span class="history-item-placeholder">${hospitalSvg}</span></div>
                 <div class="history-item-name">${escapeHtml(item.name || '')}</div>
                 <div class="history-item-meta">
                     <span class="history-item-area">${escapeHtml(item.city || '')}</span>
@@ -4804,8 +4809,8 @@ function renderDoctorCard(d) {
 
     // 医師写真サムネイル
     const photoHtml = d.photo_url
-        ? `<div class="doctor-photo"><img src="${escapeHtml(d.photo_url)}" alt="${escapeHtml(d.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\'doctor-photo-placeholder\'>👤</span>'"></div>`
-        : `<div class="doctor-photo"><span class="doctor-photo-placeholder">👤</span></div>`;
+        ? `<div class="doctor-photo"><img src="${escapeHtml(d.photo_url)}" alt="${escapeHtml(d.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\'doctor-photo-placeholder\'><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>'"></div>`
+        : `<div class="doctor-photo"><span class="doctor-photo-placeholder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span></div>`;
 
     return `
         <div class="doctor-card" onclick="showDoctorDetail('${escapeHtml(d.id || '')}')" style="cursor:pointer;">
