@@ -25,23 +25,26 @@
 }
 
 :root {
-    /* 色彩 — グレー背景 + 白カードでパネル形状を明確に */
-    --bg:             #f0eeea;
-    --bg-warm:        #e9e6e1;
-    --bg-warm-alt:    #e2ded8;
+    /* 色彩 — LIPS準拠の白基調デザイン
+       LIPS実測値: elevation-high=#fff, elevation-low=#fafafa,
+       surface=#f7f7f7, border-separation=rgba(0,0,0,0.05)
+       AURAはウォームトーンにシフト */
+    --bg:             #faf9f7;
+    --bg-warm:        #f5f3ef;
+    --bg-warm-alt:    #efece7;
     --surface:        #ffffff;
-    --border:         #ccc7bf;
-    --border-subtle:  #d9d4cc;
+    --border:         rgba(0, 0, 0, 0.08);
+    --border-subtle:  rgba(0, 0, 0, 0.05);
 
-    /* テキスト階層 */
+    /* テキスト階層 — LIPS実測: main=#000, secondary=#777 */
     --text:           #1a1a1a;
-    --text-secondary: #5c5c5c;
-    --text-muted:     #8a8a8a;
+    --text-secondary: #666666;
+    --text-muted:     #999999;
 
     /* アクセント — 深いフォレストグリーン（信頼・安心） */
     --accent:         #2c4a3e;
     --accent-hover:   #1f3a30;
-    --accent-soft:    #e0ebe4;
+    --accent-soft:    #e8efeb;
 
     /* セマンティック */
     --success:        #3D8B6E;
@@ -63,13 +66,13 @@
     --transition:     0.2s ease;
 
     /* 影 — 最小限 */
-    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.06);
-    --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.08);
-    --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.15);
+    --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.12);
 
     /* 追加トークン */
-    --bg-elevated:  #f7f6f3;
-    --card-border:  #ccc7bf;
+    --bg-elevated:  #f7f7f7;
+    --card-border:  rgba(0, 0, 0, 0.08);
     --accent-blue:  #3b82f6;
     --primary:      #2c4a3e;
 }
@@ -5000,7 +5003,7 @@ body {
     line-height: 1.5;
     margin: 6px 0;
     padding: 6px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--border);
 }
 
 .rec-doc-tags {
@@ -5012,8 +5015,8 @@ body {
 
 /* === 医師リッチカード（クリニック詳細ページ） === */
 .doctor-card-detail {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 10px;
@@ -5078,7 +5081,7 @@ body {
     min-width: 48px;
     padding: 4px 8px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--bg-warm);
     border: 1px solid var(--doc-color, var(--text-muted));
     flex-shrink: 0;
 }
@@ -9584,7 +9587,7 @@ body {
 .dd-sns-tw {
     color: var(--text);
     border-color: var(--border);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-warm);
 }
 
 .dd-sns-tt {
@@ -10340,9 +10343,9 @@ body {
 }
 
 /* ==========================================
-   パネル感強化 — 全カード系コンポーネント共通
-   背景色(--bg)とカード(--surface)の明暗差 + shadow-sm で
-   パネルの「面」を明確に認識させる
+   パネル罫線保証 — LIPS準拠
+   LIPS: border-separation(rgba(0,0,0,0.05)) で区切るだけ
+   影やグラデーションは一切なし
    ========================================== */
 .proc-item,
 .clinic-item,
@@ -10357,34 +10360,12 @@ body {
 .price-truth-item,
 .tool-card,
 .top-clinic-card,
-.chat-quick-btn,
 .dd-breakdown,
 .dd-clinic-card,
 .ps-proc-card,
 .ps-clinic-card,
 .cp-card {
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
-}
-
-/* 検索フォーム領域をパネル化 */
-.search-row {
-    background: var(--surface);
-    padding: 1rem 1.25rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 1rem;
-}
-
-/* フィルタ行（施術ページ） */
-.filter-row {
-    background: var(--surface);
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 1rem;
 }
 
 /* 詳細パネル（オーバーレイ）の白背景を明確に */
