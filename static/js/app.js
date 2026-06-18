@@ -4230,7 +4230,7 @@ function renderFavCompareContent(data) {
 
     // === 2. スコア比較行 ===
     const metrics = [
-        { key: 'clinic_score', label: 'AURAスコア', max: 100, color: 'var(--accent-gold)' },
+        { key: 'clinic_score', label: 'AURAスコア', max: 100, color: 'var(--accent)' },
         { key: 'google_rating', label: 'Google評価', max: 5, color: 'var(--success)' },
         { key: 'google_review_count', label: '口コミ数', max: null, color: 'var(--warning)' },
         { key: 'transparency_score', label: '透明性', max: 100, color: 'var(--accent)' },
@@ -5703,7 +5703,7 @@ async function renderDashboard() {
             <div class="coverage-chart">`;
         (pc.by_category || []).forEach(cat => {
             const pct = cat.pct || 0;
-            const barColor = pct >= 50 ? 'var(--accent-gold)' : '#ff9800';
+            const barColor = pct >= 50 ? 'var(--accent)' : '#ff9800';
             html += `<div class="coverage-row">
                 <span class="coverage-label">${escapeHtml(cat.category)}</span>
                 <div class="coverage-bar-bg">

@@ -1,84 +1,65 @@
 /* ==========================================
-   AURA — プレミアムエディトリアル・デザインシステム v3
+   AURA — LIPS準拠デザインシステム
+
+   ⚠⚠⚠ このデザインシステムを変更しないこと ⚠⚠⚠
+   オーナー確定方針（2026-06-11 DEC-0011）
 
    設計哲学:
-   - 「美容医療の患者に、初めての味方を」
-   - ウォームニュートラル基調 + ゴールドアクセントで信頼と洗練を両立
-   - グラスモーフィズムによる奥行きと透明感
-   - マイクロアニメーションで直感的なフィードバック
-   - モバイルファースト設計（base=375px、min-widthで拡張）
-   - WCAG AA準拠のコントラスト比
-   ========================================== */
+   - LIPS（美容口コミアプリ）を参考にした「引き算」デザイン
+   - タイポグラフィと余白で構成する、雑誌のような情報設計
+   - 装飾を極限まで削ぎ落とし、コンテンツに集中させる
+   - 信頼感のある落ち着いたトーン（美容医療の不安を和らげる）
+   - 影・グラデーション・派手なアニメーションは一切不使用
+   - Aesop, Glossier, SSENSE, Monocle誌を参照
 
-
-/* ------------------------------------------
-   リセットとカスタムプロパティ
-   ------------------------------------------ */
-*, *::before, *::after {
-    box-sizing: border-box;
+   禁止事項:
+   - ゴールド系アクセント（--accent等）
+   - ローズ系アクセント（
     margin: 0;
     padding: 0;
 }
 
 :root {
-    /* 色彩 — ウォームニュートラル基調 */
-    --bg:             #FFFAF7;
-    --bg-warm:        #F5F0EB;
-    --bg-warm-alt:    #EDE7E0;
-    --surface:        #FFFFFF;
-    --surface-glass:  rgba(255, 255, 255, 0.72);
-    --border:         #E8E4DF;
-    --border-subtle:  #F0ECE7;
+    /* 色彩 — 落ち着いたウォームトーン */
+    --bg:             #faf9f7;
+    --bg-warm:        #f3f1ed;
+    --bg-warm-alt:    #eee9e3;
+    --surface:        #ffffff;
+    --border:         #eae8e4;
+    --border-subtle:  #f0ede8;
 
-    /* テキスト階層 — WCAG AA準拠 */
-    --text:           #3D3233;
-    --text-secondary: #5A5A5A;
-    --text-muted:     #8A8A8A;
+    /* テキスト階層 */
+    --text:           #1a1a1a;
+    --text-secondary: #5c5c5c;
+    --text-muted:     #999999;
 
-    /* アクセント — ダーク系（信頼感・権威） */
-    --accent:         #2C2C2E;
-    --accent-hover:   #3A3A3C;
-    --accent-soft:    #F0EDEA;
-
-    /* ゴールド — プレミアム感 */
-    --accent-gold:      #C9A87C;
-    --accent-gold-soft: #F7F0E8;
-    --accent-gold-hover:#B89468;
-
-    /* ローズ系アクセント — 温かみ・親しみ */
-    --rose:           #E8B4B8;
-    --rose-soft:      #FDF2F3;
-    --rose-hover:     #D4969B;
-    --trust-blue:     #7BA7C2;
-    --trust-blue-soft: #EDF4F8;
+    /* アクセント — 深いフォレストグリーン（信頼・安心） */
+    --accent:         #2c4a3e;
+    --accent-hover:   #1f3a30;
+    --accent-soft:    #e8efeb;
 
     /* セマンティック */
     --success:        #3D8B6E;
     --success-bg:     #EDF7F2;
-    --caution:        #C25E52;
-    --caution-bg:     #FBF0EE;
-    --warning:        #B08D3E;
-    --warning-bg:     #FBF7EE;
+    --caution:        #9a6464;
+    --caution-bg:     #f8f0f0;
+    --warning:        #8a6a20;
+    --warning-bg:     #f9f5eb;
 
     /* タイポグラフィ */
-    --font-ja:    'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
-    --font-en:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-serif: 'Noto Serif JP', serif;
+    --font-ja: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+    --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
     /* レイアウト */
     --content-width:  720px;
     --header-width:   960px;
-    --radius:         12px;
-    --radius-sm:      8px;
-    --radius-pill:    100px;
+    --radius:         10px;
+    --radius-sm:      6px;
     --transition:     0.2s ease;
-    --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* シャドウ階層 */
-    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
-    --shadow-lg:    0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
-    --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.05);
+    /* 影 — 最小限 */
+    --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* ダークモード — システム設定または手動切替 */
@@ -88,7 +69,7 @@
         --bg-warm:        #222224;
         --bg-warm-alt:    #2A2A2C;
         --surface:        #2C2C2E;
-        --surface-glass:  rgba(44, 44, 46, 0.8);
+        --surface:  rgba(44, 44, 46, 0.8);
         --border:         #3A3A3C;
         --border-subtle:  #333335;
 
@@ -100,16 +81,15 @@
         --accent-hover:   #E5E5EA;
         --accent-soft:    #2C2C2E;
 
-        --accent-gold:      #D4B896;
-        --accent-gold-soft: #2D2820;
-        --accent-gold-hover:#E0C9A8;
+        --accent:      #D4B896;
+        --accent-soft: #2D2820;
+        --accent-hover:#E0C9A8;
 
         /* ローズ系ダークバリアント */
-        --rose:           #C4878C;
-        --rose-soft:      #2E2224;
-        --rose-hover:     #D49A9F;
-        --trust-blue:     #8BB8D0;
-        --trust-blue-soft: #1E2A32;
+        --accent-soft:      #2E2224;
+        --accent-hover:     #D49A9F;
+        --accent:     #8BB8D0;
+        --accent-soft: #1E2A32;
 
         --success:        #4CAF7D;
         --success-bg:     #1C2E24;
@@ -120,7 +100,7 @@
 
         --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.2);
         --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.3);
-        --shadow-lg:    0 12px 40px rgba(0, 0, 0, 0.4);
+        --shadow-md:    0 12px 40px rgba(0, 0, 0, 0.4);
         --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.5);
     }
 }
@@ -130,7 +110,7 @@
     --bg-warm:        #222224;
     --bg-warm-alt:    #2A2A2C;
     --surface:        #2C2C2E;
-    --surface-glass:  rgba(44, 44, 46, 0.8);
+    --surface:  rgba(44, 44, 46, 0.8);
     --border:         #3A3A3C;
     --border-subtle:  #333335;
 
@@ -142,16 +122,15 @@
     --accent-hover:   #E5E5EA;
     --accent-soft:    #2C2C2E;
 
-    --accent-gold:      #D4B896;
-    --accent-gold-soft: #2D2820;
-    --accent-gold-hover:#E0C9A8;
+    --accent:      #D4B896;
+    --accent-soft: #2D2820;
+    --accent-hover:#E0C9A8;
 
     /* ローズ系ダークバリアント */
-    --rose:           #C4878C;
-    --rose-soft:      #2E2224;
-    --rose-hover:     #D49A9F;
-    --trust-blue:     #8BB8D0;
-    --trust-blue-soft: #1E2A32;
+    --accent-soft:      #2E2224;
+    --accent-hover:     #D49A9F;
+    --accent:     #8BB8D0;
+    --accent-soft: #1E2A32;
 
     --success:        #4CAF7D;
     --success-bg:     #1C2E24;
@@ -162,7 +141,7 @@
 
     --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.2);
     --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.3);
-    --shadow-lg:    0 12px 40px rgba(0, 0, 0, 0.4);
+    --shadow-md:    0 12px 40px rgba(0, 0, 0, 0.4);
     --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -189,14 +168,14 @@ body {
 
 /* テキスト選択 — ゴールドアクセントを反映 */
 ::selection {
-    background: var(--accent-gold-soft);
+    background: var(--accent-soft);
     color: var(--text);
 }
 
 
 /* ------------------------------------------
    ヘッダー
-   グラスモーフィズム + スクロール連動トランジション
+   スクロール連動トランジション
    ------------------------------------------ */
 #site-header {
     position: sticky;
@@ -210,8 +189,6 @@ body {
     padding: 0 1rem;
     height: 52px;
     background: rgba(255, 250, 247, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(232, 228, 223, 0.6);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -395,13 +372,13 @@ main {
     transform: translateX(-50%);
     width: 60px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
     border-radius: 1px;
     z-index: 2;
 }
 
 .hero-title {
-    font-family: var(--font-serif);
+    font-family: var(--font-ja);
     font-size: 1.6rem;
     font-weight: 700;
     line-height: 1.7;
@@ -435,19 +412,17 @@ main {
     font-family: var(--font-ja);
 }
 .hero-cta--primary {
-    background: var(--rose);
+    background: var(--accent);
     color: #fff;
 }
 .hero-cta--primary:hover {
-    background: var(--rose-hover);
+    background: var(--accent-hover);
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(232, 180, 184, 0.4);
 }
 .hero-cta--secondary {
     background: rgba(255,255,255,0.7);
     color: var(--text);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(201,168,124,0.3);
 }
 .hero-cta--secondary:hover {
@@ -465,8 +440,8 @@ main {
 }
 .trust-badge {
     font-size: 0.7rem;
-    color: var(--trust-blue);
-    background: var(--trust-blue-soft);
+    color: var(--accent);
+    background: var(--accent-soft);
     padding: 4px 12px;
     border-radius: 20px;
     font-weight: 500;
@@ -488,10 +463,8 @@ main {
     align-items: center;
     flex: 1;
     padding: 0.85rem 0.5rem;
-    background: var(--surface-glass);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: var(--radius-pill);
+    background: var(--surface);
+    border-radius: var(--radius);
     border: 1px solid rgba(232, 228, 223, 0.5);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -570,7 +543,7 @@ main {
 
 .concern-card:hover {
     background: var(--bg-warm);
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
     box-shadow: var(--shadow-sm);
     transform: translateY(-2px);
 }
@@ -584,7 +557,7 @@ main {
     width: 28px;
     height: 28px;
     margin-bottom: 0.5rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     opacity: 0.8;
     transition: opacity 0.2s, transform 0.2s;
 }
@@ -690,7 +663,7 @@ main {
     background: var(--accent);
     color: #ffffff;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-family: var(--font-ja);
     font-size: 0.85rem;
     font-weight: 500;
@@ -743,7 +716,7 @@ main {
 .filter-btn {
     padding: 0.45rem 1.1rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: transparent;
     font-family: var(--font-ja);
     font-size: 0.78rem;
@@ -780,7 +753,7 @@ main {
     transform: translateX(-50%);
     width: 16px;
     height: 2px;
-    background: var(--accent-gold);
+    background: var(--accent);
     border-radius: 1px;
 }
 
@@ -798,7 +771,7 @@ main {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     cursor: pointer;
-    transition: transform var(--transition-slow), box-shadow var(--transition-slow), border-color var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
     overflow: hidden;
     word-break: break-word;
     position: relative;
@@ -812,7 +785,7 @@ main {
     left: 0;
     width: 3px;
     height: 100%;
-    background: var(--accent-gold);
+    background: var(--accent);
     border-radius: 3px 0 0 3px;
     opacity: 0.6;
     transition: opacity var(--transition);
@@ -821,7 +794,7 @@ main {
 .proc-item:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent-gold-soft);
+    border-color: var(--accent-soft);
 }
 
 .proc-item:hover::before {
@@ -864,7 +837,7 @@ main {
 .proc-item-badge {
     display: inline-block;
     padding: 0.15rem 0.65rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.68rem;
     font-weight: 500;
     margin-top: 0.5rem;
@@ -906,15 +879,13 @@ main {
 
 /* ------------------------------------------
    施術詳細パネル（オーバーレイ）
-   グラスモーフィズム + 右からスライドイン
+   右からスライドイン
    ------------------------------------------ */
 .overlay {
     position: fixed;
     inset: 0;
     z-index: 200;
     background: rgba(30, 30, 30, 0.25);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
     display: flex;
     justify-content: flex-end;
     animation: fadeIn 0.15s ease;
@@ -924,8 +895,6 @@ main {
     width: 100%;
     max-width: 560px;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     overflow-y: auto;
     padding: 2rem 1.5rem;
     position: relative;
@@ -1075,7 +1044,7 @@ main {
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: var(--accent-gold);
+    background: var(--accent);
 }
 
 /* 質問リスト — 番号付き */
@@ -1108,7 +1077,7 @@ main {
     border-radius: 50%;
     border: 1px solid var(--border);
     background: transparent;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-size: 0.65rem;
     font-weight: 500;
     font-family: var(--font-en);
@@ -1131,7 +1100,7 @@ main {
     padding: 0.7rem;
     background: var(--bg-warm-alt);
     border-radius: var(--radius);
-    border-left: 3px solid var(--accent-gold);
+    border-left: 3px solid var(--accent);
 }
 
 .counseling-q-num {
@@ -1140,7 +1109,7 @@ main {
     justify-content: center;
     min-width: 1.6rem;
     height: 1.6rem;
-    background: var(--accent-gold);
+    background: var(--accent);
     color: #fff;
     border-radius: 50%;
     font-size: 0.6rem;
@@ -1280,7 +1249,7 @@ main {
     min-width: 100%;
     padding: 0.7rem 1rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--surface);
     font-family: var(--font-ja);
     font-size: 16px; /* iOSのズーム防止 */
@@ -1290,7 +1259,7 @@ main {
 
 .search-field:focus {
     outline: none;
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(201, 168, 124, 0.12);
 }
 
@@ -1321,7 +1290,7 @@ main {
     padding: 0.7rem 1.8rem;
     background: var(--accent);
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     color: #ffffff;
     font-family: var(--font-ja);
     font-size: 0.82rem;
@@ -1449,7 +1418,7 @@ main {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     cursor: pointer;
-    transition: transform var(--transition-slow), box-shadow var(--transition-slow), border-color var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
     margin-bottom: 0.75rem;
     position: relative;
 }
@@ -1462,7 +1431,7 @@ main {
     left: 0;
     width: 3px;
     height: 100%;
-    background: linear-gradient(180deg, var(--accent-gold), var(--accent-gold-hover));
+    background: linear-gradient(180deg, var(--accent), var(--accent-hover));
     border-radius: 3px 0 0 3px;
     opacity: 0.4;
     transition: opacity var(--transition);
@@ -1471,7 +1440,7 @@ main {
 .clinic-item:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent-gold-soft);
+    border-color: var(--accent-soft);
 }
 
 .clinic-item:hover::before {
@@ -1573,7 +1542,7 @@ main {
 .clinic-tag {
     padding: 0.1rem 0.55rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.65rem;
     font-weight: 400;
     color: var(--text-muted);
@@ -1640,7 +1609,7 @@ main {
 .clinic-rating {
     font-size: 0.82rem;
     font-weight: 500;
-    color: var(--accent-gold);
+    color: var(--accent);
     letter-spacing: -0.01em;
 }
 
@@ -1653,7 +1622,7 @@ main {
     display: inline-block;
     margin-top: 0.4rem;
     font-size: 0.75rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -1661,7 +1630,7 @@ main {
 }
 
 .clinic-item-link:hover {
-    color: var(--accent-gold-hover);
+    color: var(--accent-hover);
 }
 
 /* 比較チェックボックス（クリニックカード右上） */
@@ -1671,7 +1640,7 @@ main {
     right: 0.75rem;
     width: 20px;
     height: 20px;
-    accent-color: var(--accent-gold);
+    accent-color: var(--accent);
     cursor: pointer;
     z-index: 5;
 }
@@ -1704,9 +1673,9 @@ main {
 }
 
 .pager-btn:hover {
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
     color: var(--text);
-    background: var(--accent-gold-soft);
+    background: var(--accent-soft);
 }
 
 .pager-btn.active {
@@ -1723,7 +1692,7 @@ main {
 
 /* ------------------------------------------
    チャット（相談する）
-   洗練されたメッセージUI + グラスモーフィズム
+   洗練されたメッセージUI 
    ------------------------------------------ */
 .advisor-container {
     display: flex;
@@ -1739,8 +1708,8 @@ main {
 .advisor-note {
     margin-top: 1.25rem;
     padding: 1rem 1.25rem;
-    border-left: 3px solid var(--accent-gold);
-    background: var(--accent-gold-soft);
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
     font-size: 0.75rem;
     color: var(--text-secondary);
     line-height: 1.9;
@@ -1798,11 +1767,9 @@ main {
     box-shadow: var(--shadow-sm);
 }
 
-/* アシスタントバブル — グラスモーフィズム背景 */
+/* アシスタントバブル — 背景 */
 .msg--assistant .msg-body {
-    background: var(--surface-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--surface);
     border: 1px solid rgba(232, 228, 223, 0.6);
     color: var(--text);
     border-radius: 20px 20px 20px 4px;
@@ -1823,7 +1790,7 @@ main {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-hover));
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
     color: #ffffff;
     font-family: var(--font-en);
     font-size: 0.7rem;
@@ -1907,8 +1874,8 @@ main {
 }
 
 .chat-quick-btn:hover {
-    border-color: var(--accent-gold);
-    background: var(--accent-gold-soft);
+    border-color: var(--accent);
+    background: var(--accent-soft);
     color: var(--accent);
     transform: translateY(-1px);
 }
@@ -1917,8 +1884,8 @@ main {
 .recommendation-card {
     margin-top: 0.75rem;
     padding: 0.85rem 1rem;
-    background: var(--accent-gold-soft);
-    border: 1px solid var(--accent-gold);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
     border-radius: var(--radius);
     cursor: pointer;
     transition: transform var(--transition), box-shadow var(--transition);
@@ -1943,7 +1910,7 @@ main {
 
 .recommendation-card-rating {
     font-size: 0.72rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -2027,8 +1994,6 @@ main {
     position: sticky;
     bottom: 0;
     background: rgba(255, 250, 247, 0.9);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid rgba(232, 228, 223, 0.5);
 }
 
@@ -2036,7 +2001,7 @@ main {
     flex: 1;
     padding: 0.8rem 1.2rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--surface);
     font-family: var(--font-ja);
     font-size: 16px; /* iOSのズーム防止 */
@@ -2047,7 +2012,7 @@ main {
 
 .chat-field:focus {
     outline: none;
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(201, 168, 124, 0.12), var(--shadow-sm);
 }
 
@@ -2115,7 +2080,7 @@ main {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent-gold);
+    background: var(--accent);
     animation: msgDot 1.2s infinite ease-in-out;
 }
 
@@ -2140,7 +2105,7 @@ main {
 .chat-msg--streaming::after {
     content: '|';
     display: inline;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 300;
     animation: cursorBlink 0.8s infinite step-end;
     margin-left: 1px;
@@ -2203,13 +2168,13 @@ main {
     font-family: var(--font-en);
     font-size: 1.35rem;
     font-weight: 600;
-    color: var(--accent-gold);
+    color: var(--accent);
     letter-spacing: -0.02em;
 }
 
 .clinic-detail-rating-stars {
     font-size: 0.85rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     letter-spacing: 0.05em;
 }
 
@@ -2284,14 +2249,14 @@ main {
 }
 
 .clinic-info-link {
-    color: var(--accent-gold);
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
     transition: color var(--transition);
 }
 
 .clinic-info-link:hover {
-    color: var(--accent-gold-hover);
+    color: var(--accent-hover);
 }
 
 /* 営業時間リスト */
@@ -2332,7 +2297,7 @@ main {
     display: inline-block;
     margin-top: 0.6rem;
     font-size: 0.75rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -2340,7 +2305,7 @@ main {
 }
 
 .clinic-map-link:hover {
-    color: var(--accent-gold-hover);
+    color: var(--accent-hover);
 }
 
 /* Google Maps直リンク */
@@ -2351,19 +2316,19 @@ main {
 .clinic-gmaps-link a {
     display: inline-block;
     font-size: 0.78rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
     letter-spacing: 0.02em;
     padding: 0.4rem 0.8rem;
-    border: 1px solid var(--accent-gold-soft);
-    border-radius: var(--radius-pill);
+    border: 1px solid var(--accent-soft);
+    border-radius: var(--radius);
     transition: background var(--transition), border-color var(--transition);
 }
 
 .clinic-gmaps-link a:hover {
-    background: var(--accent-gold-soft);
-    border-color: var(--accent-gold);
+    background: var(--accent-soft);
+    border-color: var(--accent);
 }
 
 
@@ -2374,7 +2339,7 @@ main {
     display: inline-flex;
     align-items: center;
     padding: 0.15rem 0.65rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-family: var(--font-en);
     font-size: 0.68rem;
     font-weight: 600;
@@ -2602,7 +2567,7 @@ main {
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    background: var(--accent-gold);
+    background: var(--accent);
     color: #fff;
     font-size: 0.55rem;
     font-weight: 700;
@@ -2696,10 +2661,10 @@ main {
 .doctor-cert {
     display: inline-block;
     padding: 0.1rem 0.45rem;
-    border: 1px solid var(--accent-gold-soft);
-    border-radius: var(--radius-pill);
+    border: 1px solid var(--accent-soft);
+    border-radius: var(--radius);
     font-size: 0.65rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 500;
     letter-spacing: 0.02em;
 }
@@ -2750,7 +2715,7 @@ main {
 .proc-menu-src {
     display: inline-block;
     padding: 0.08rem 0.4rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -2781,7 +2746,7 @@ main {
 
 .review-stars {
     font-size: 0.72rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     letter-spacing: 0.02em;
 }
 
@@ -2802,7 +2767,7 @@ main {
 .review-expand-btn {
     background: none;
     border: none;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
@@ -2869,7 +2834,7 @@ main {
 .aspect-tag {
     font-size: 0.65rem;
     padding: 0.15rem 0.55rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--bg-warm);
     color: var(--text-secondary);
     font-weight: 400;
@@ -2892,13 +2857,8 @@ main {
     position: absolute;
     inset: 0;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
-    animation: shimmer 1.5s infinite;
 }
 
-@keyframes shimmer {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
 
 .skeleton-card {
     background: var(--surface);
@@ -2923,7 +2883,6 @@ main {
     position: absolute;
     inset: 0;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
-    animation: shimmer 1.5s infinite;
 }
 
 .skeleton-line--title {
@@ -2950,7 +2909,6 @@ main {
     position: absolute;
     inset: 0;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
-    animation: shimmer 1.5s infinite;
 }
 
 
@@ -2958,7 +2916,7 @@ main {
    比較機能UI
    ------------------------------------------ */
 
-/* 比較バー — 画面下部に固定表示 + グラスモーフィズム */
+/* 比較バー — 画面下部に固定表示  */
 .compare-bar {
     position: fixed;
     bottom: 72px; /* ボトムナビの上 */
@@ -2966,8 +2924,6 @@ main {
     right: 0;
     z-index: 150;
     background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid rgba(232, 228, 223, 0.6);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
     padding: 0.75rem 1.25rem;
@@ -2998,7 +2954,7 @@ main {
     gap: 0.35rem;
     padding: 0.3rem 0.65rem;
     background: var(--bg-warm);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.72rem;
 }
 
@@ -3019,7 +2975,7 @@ main {
     background: var(--accent);
     color: #ffffff;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-family: var(--font-ja);
     font-size: 0.78rem;
     font-weight: 500;
@@ -3160,7 +3116,7 @@ main {
 
 /* ------------------------------------------
    ボトムナビゲーション（モバイル）
-   グラスモーフィズム対応
+   ダーク対応
    ------------------------------------------ */
 .bottom-nav {
     position: fixed;
@@ -3170,8 +3126,6 @@ main {
     z-index: 160;
     display: flex;
     background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(232, 228, 223, 0.6);
     box-shadow: 0 -1px 12px rgba(0, 0, 0, 0.04);
     height: 72px;
@@ -3217,7 +3171,7 @@ main {
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: var(--accent-gold);
+    background: var(--accent);
 }
 
 .bottom-nav-item:hover {
@@ -3455,7 +3409,7 @@ body {
 
 /* ------------------------------------------
    トースト通知
-   下部中央にフェードイン/アウトで表示 + グラスモーフィズム
+   下部中央にフェードイン/アウトで表示 
    ------------------------------------------ */
 .toast {
     position: fixed;
@@ -3468,14 +3422,12 @@ body {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.82rem;
     font-weight: 500;
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .toast--visible {
@@ -3546,7 +3498,7 @@ body {
     display: inline-block;
     width: 2px;
     height: 1em;
-    background: var(--accent-gold);
+    background: var(--accent);
     margin-left: 2px;
     vertical-align: text-bottom;
     animation: cursorBlink 0.8s step-end infinite;
@@ -3603,7 +3555,7 @@ body {
     }
 
     .hero-stat:hover .hero-stat-number {
-        color: var(--accent-gold);
+        color: var(--accent);
     }
 }
 
@@ -3649,7 +3601,7 @@ body {
 }
 
 .guide-card:hover {
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
     box-shadow: var(--shadow-sm);
 }
 
@@ -3660,8 +3612,8 @@ body {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    color: var(--accent);
     margin-bottom: 0.75rem;
 }
 
@@ -3731,7 +3683,7 @@ body {
 .quote-checker-form select:focus,
 .quote-checker-form input[type="number"]:focus {
     outline: none;
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
 }
 
 .quote-checker-submit {
@@ -3739,7 +3691,7 @@ body {
     background: var(--accent);
     color: #ffffff;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-family: var(--font-ja);
     font-size: 0.85rem;
     font-weight: 500;
@@ -3795,7 +3747,7 @@ body {
     position: relative;
     height: 2.5rem;
     background: var(--bg-warm-alt);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     margin: 1rem 0;
     overflow: visible;
 }
@@ -3803,8 +3755,8 @@ body {
 .quote-price-range {
     position: absolute;
     height: 100%;
-    background: linear-gradient(90deg, var(--success-bg), var(--accent-gold-soft));
-    border-radius: var(--radius-pill);
+    background: linear-gradient(90deg, var(--success-bg), var(--accent-soft));
+    border-radius: var(--radius);
     opacity: 0.7;
 }
 
@@ -3888,7 +3840,7 @@ body {
     font-size: 0.88rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 .quote-questions ol {
@@ -3908,7 +3860,7 @@ body {
     padding: 0.5rem 0.75rem;
     background: var(--bg-warm);
     border-radius: var(--radius-sm);
-    border-left: 2px solid var(--accent-gold);
+    border-left: 2px solid var(--accent);
 }
 
 .satisfaction-source-text {
@@ -3954,7 +3906,7 @@ body {
     left: 0;
     width: 4px;
     height: 100%;
-    background: linear-gradient(180deg, var(--accent-gold), var(--accent-gold-hover));
+    background: linear-gradient(180deg, var(--accent), var(--accent-hover));
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -3962,7 +3914,7 @@ body {
 .tool-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
 }
 
 .tool-card:hover::before {
@@ -3994,10 +3946,10 @@ body {
     font-size: 0.7rem;
     font-weight: 500;
     padding: 0.2rem 0.65rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     margin-top: 0.8rem;
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 /* ツールモーダル */
@@ -4008,8 +3960,6 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(30, 30, 30, 0.4);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -4027,8 +3977,6 @@ body {
 
 .tool-modal {
     background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius);
     max-width: 700px;
     width: 100%;
@@ -4069,7 +4017,7 @@ body {
 }
 
 .tool-modal h2 {
-    font-family: var(--font-serif);
+    font-family: var(--font-ja);
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -4082,7 +4030,7 @@ body {
     font-weight: 600;
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 .tool-modal pre {
@@ -4111,8 +4059,8 @@ body {
 }
 
 .tool-modal .legal-basis {
-    background: var(--accent-gold-soft);
-    border-left: 3px solid var(--accent-gold);
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
     padding: 0.8rem 1rem;
     font-size: 0.8rem;
     color: var(--text-secondary);
@@ -4149,7 +4097,7 @@ body {
     background: var(--accent);
     color: white;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.85rem;
     cursor: pointer;
     margin-top: 1rem;
@@ -4186,8 +4134,6 @@ body {
     border: none;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -4294,7 +4240,7 @@ body {
    キーボード操作時の視認性を確保
    ------------------------------------------ */
 :focus-visible {
-    outline: 2px solid var(--accent-gold);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: 2px;
 }
@@ -4342,7 +4288,7 @@ body {
         opacity: 0.92;
     }
     :root:not([data-theme="light"]) ::selection {
-        background: var(--accent-gold-soft);
+        background: var(--accent-soft);
     }
     :root:not([data-theme="light"]) #site-header {
         background: rgba(26, 26, 28, 0.85);
@@ -4367,7 +4313,7 @@ body {
     opacity: 0.92;
 }
 [data-theme="dark"] ::selection {
-    background: var(--accent-gold-soft);
+    background: var(--accent-soft);
 }
 [data-theme="dark"] #site-header {
     background: rgba(26, 26, 28, 0.85);
@@ -4503,8 +4449,8 @@ body {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    color: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4581,9 +4527,7 @@ body {
     height: 40px;
     border-radius: 50%;
     border: 1px solid var(--border);
-    background: var(--surface-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--surface);
     color: var(--text-muted);
     cursor: pointer;
     display: flex;
@@ -4670,7 +4614,7 @@ body {
     background: var(--accent);
     color: #fff;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     cursor: pointer;
     font-size: 0.85rem;
     font-family: var(--font-ja);
@@ -4690,7 +4634,7 @@ body {
     font-style: italic;
     color: var(--text-muted);
     padding: 1rem;
-    border-left: 3px solid var(--accent-gold);
+    border-left: 3px solid var(--accent);
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
     line-height: 1.7;
@@ -4746,7 +4690,7 @@ body {
     content: '▢';
     position: absolute;
     left: 0;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-size: 1.1rem;
 }
 
@@ -4773,7 +4717,7 @@ body {
 .category-pill {
     padding: 0.25rem 0.75rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
     font-size: 0.8rem;
@@ -4782,9 +4726,9 @@ body {
     font-family: var(--font-ja);
 }
 .category-pill:hover {
-    background: var(--accent-gold);
+    background: var(--accent);
     color: #fff;
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
 }
 .question-list {
     padding-left: 1.25rem;
@@ -4838,7 +4782,7 @@ body {
 }
 .defense-submit {
     padding: 0.7rem;
-    background: var(--accent-gold);
+    background: var(--accent);
     color: #fff;
     border: none;
     border-radius: var(--radius-sm);
@@ -4924,14 +4868,14 @@ body {
     position: relative;
     height: 2rem;
     background: rgba(194, 94, 82, 0.12);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     overflow: hidden;
     margin-bottom: 0.5rem;
 }
 .satisfaction-bar {
     height: 100%;
     background: linear-gradient(90deg, var(--success), #4CAF7D);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     transition: width 1s ease;
 }
 .satisfaction-label {
@@ -5018,7 +4962,7 @@ body {
 .search-checkbox-label input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: var(--accent-gold);
+    accent-color: var(--accent);
 }
 
 /* 統計グリッド */
@@ -5053,7 +4997,7 @@ body {
 .doctor-stat-number {
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-family: var(--font-en);
 }
 
@@ -5193,8 +5137,8 @@ body {
     padding: 2px 8px;
     background: linear-gradient(135deg, rgba(212, 184, 150, 0.15), rgba(212, 184, 150, 0.08));
     border: 1px solid rgba(212, 184, 150, 0.3);
-    border-radius: var(--radius-pill);
-    color: var(--accent-gold);
+    border-radius: var(--radius);
+    color: var(--accent);
     font-weight: 500;
     white-space: nowrap;
 }
@@ -5812,7 +5756,7 @@ body {
 
 .proc-clinic-rating {
     font-size: 0.68rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -5969,7 +5913,7 @@ body {
 .proc-sort-btn {
     padding: 3px 10px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--surface);
     color: var(--text-muted);
     font-size: 0.65rem;
@@ -6035,7 +5979,7 @@ body {
     left: 0;
     width: 100%;
     height: 3px;
-    background: linear-gradient(90deg, var(--accent-gold), transparent);
+    background: linear-gradient(90deg, var(--accent), transparent);
     opacity: 0;
     transition: opacity var(--transition);
 }
@@ -6043,7 +5987,7 @@ body {
 .area-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
 }
 
 .area-card:hover::before {
@@ -6094,9 +6038,9 @@ body {
     display: inline-block;
     margin-top: 0.5rem;
     padding: 0.15rem 0.5rem;
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
-    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: var(--radius);
     font-size: 0.65rem;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -6108,7 +6052,7 @@ body {
     padding: 0.15rem 0.5rem;
     background: var(--caution-bg);
     color: var(--caution);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.62rem;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -6194,7 +6138,7 @@ body {
     background: var(--accent-bg);
     color: var(--accent);
     padding: 0.1rem 0.4rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.6rem;
     font-weight: 500;
 }
@@ -6221,7 +6165,7 @@ body {
     border: 1px solid var(--accent);
     color: var(--accent);
     padding: 0.5rem 1.5rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
@@ -6862,7 +6806,6 @@ body {
 }
 
 
-
 /* ==========================================
    Phase 23: 星分布バー
    ========================================== */
@@ -6968,7 +6911,7 @@ body {
 .review-filter-btn {
     padding: 0.25rem 0.55rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: transparent;
     color: var(--text-muted);
     font-size: 0.65rem;
@@ -7357,7 +7300,7 @@ body {
     padding: 0.6rem 1.2rem;
     background: var(--text);
     color: var(--bg);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.78rem;
     font-weight: 500;
     opacity: 0;
@@ -7380,7 +7323,6 @@ body {
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
 }
 
 .prep-sheet-content {
@@ -7655,7 +7597,7 @@ body {
     cursor: pointer;
     padding: 0.2rem 0.5rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     transition: all 0.2s ease;
     user-select: none;
 }
@@ -7871,7 +7813,7 @@ body {
     font-size: 0.65rem;
     font-weight: 600;
     padding: 0.15rem 0.5rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
 }
 
 .rs-trend--improving { background: rgba(46, 125, 50, 0.12); color: #2e7d32; }
@@ -8222,7 +8164,7 @@ body {
     gap: 0.4rem;
     padding: 0.55rem 1rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--surface);
     font-family: var(--font-ja);
     font-size: 0.8rem;
@@ -8234,14 +8176,14 @@ body {
 }
 
 .filter-toggle-btn:hover {
-    border-color: var(--accent-gold);
-    color: var(--accent-gold);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .filter-toggle-btn[aria-expanded="true"] {
-    background: var(--accent-gold-soft);
-    border-color: var(--accent-gold);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 /* フィルタ折りたたみコンテナ — PC常に表示 */
@@ -8400,7 +8342,7 @@ body {
 .similar-clinic-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent-gold-soft);
+    border-color: var(--accent-soft);
 }
 
 /* ヘッダー（名前 + メタ） */
@@ -8433,7 +8375,7 @@ body {
 }
 
 .similar-clinic-rating {
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 500;
 }
 
@@ -8443,7 +8385,7 @@ body {
     width: 0.55rem;
     height: 0.55rem;
     margin-right: 0.15rem;
-    background: var(--accent-gold);
+    background: var(--accent);
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
     vertical-align: middle;
 }
@@ -8480,11 +8422,11 @@ body {
 .similar-reason-tag {
     display: inline-block;
     padding: 0.12rem 0.55rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.62rem;
     font-weight: 500;
     letter-spacing: 0.03em;
-    background: var(--accent-gold-soft);
+    background: var(--accent-soft);
     color: var(--warning);
     border: 1px solid rgba(201, 168, 124, 0.2);
 }
@@ -8498,7 +8440,7 @@ body {
 [data-theme="dark"] .similar-reason-tag {
     background: rgba(212, 184, 150, 0.1);
     border-color: rgba(212, 184, 150, 0.2);
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -8510,7 +8452,7 @@ body {
     :root:not([data-theme="light"]) .similar-reason-tag {
         background: rgba(212, 184, 150, 0.1);
         border-color: rgba(212, 184, 150, 0.2);
-        color: var(--accent-gold);
+        color: var(--accent);
     }
 }
 
@@ -8549,8 +8491,8 @@ body {
 }
 
 .fav-compare-checkbox:checked + .fav-compare-checkmark {
-    background: var(--accent-gold);
-    border-color: var(--accent-gold);
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
 .fav-compare-checkbox:checked + .fav-compare-checkmark::after {
@@ -8582,7 +8524,7 @@ body {
     flex-shrink: 0;
 }
 
-.fav-grade-badge--a { background: var(--accent-gold); }
+.fav-grade-badge--a { background: var(--accent); }
 .fav-grade-badge--b { background: var(--success); }
 .fav-grade-badge--c { background: var(--warning); }
 .fav-grade-badge--d { background: var(--text-muted); }
@@ -8596,9 +8538,9 @@ body {
     min-width: 28px;
     height: 20px;
     padding: 0 4px;
-    border-radius: var(--radius-pill);
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    border-radius: var(--radius);
+    background: var(--accent-soft);
+    color: var(--accent);
     font-size: 0.68rem;
     font-weight: 600;
     font-family: var(--font-en);
@@ -8613,10 +8555,10 @@ body {
     gap: 0.5rem;
     width: 100%;
     padding: 0.7rem 1rem;
-    border: 2px solid var(--accent-gold);
+    border: 2px solid var(--accent);
     border-radius: var(--radius);
     background: transparent;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-size: 0.82rem;
     font-weight: 600;
     font-family: inherit;
@@ -8626,7 +8568,7 @@ body {
 }
 
 .fav-compare-btn:hover:not(:disabled) {
-    background: var(--accent-gold);
+    background: var(--accent);
     color: #fff;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(201, 168, 124, 0.3);
@@ -8689,7 +8631,7 @@ body {
     color: #fff;
 }
 
-.fc-grade--a { background: var(--accent-gold); }
+.fc-grade--a { background: var(--accent); }
 .fc-grade--b { background: var(--success); }
 .fc-grade--c { background: var(--warning); }
 .fc-grade--d { background: var(--text-muted); }
@@ -8790,11 +8732,11 @@ body {
 
 /* 最高値ハイライト */
 .fc-winner .fc-bar-track {
-    box-shadow: 0 0 0 2px var(--accent-gold-soft);
+    box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .fc-winner .fc-bar-clinic-name {
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -8900,8 +8842,8 @@ body {
 }
 
 .fc-price-best {
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    color: var(--accent);
     font-weight: 700;
     position: relative;
 }
@@ -8942,7 +8884,7 @@ body {
 .fc-trait-tag {
     display: inline-block;
     padding: 0.15rem 0.5rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.65rem;
     font-weight: 500;
 }
@@ -8967,7 +8909,7 @@ body {
 
 /* --- インサイト --- */
 .fc-insights {
-    background: var(--accent-gold-soft);
+    background: var(--accent-soft);
     border-radius: var(--radius);
     padding: 1rem !important;
     border: none !important;
@@ -8996,7 +8938,7 @@ body {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: var(--accent-gold);
+    background: var(--accent);
 }
 
 .fc-insight-list li:last-child {
@@ -9113,7 +9055,7 @@ body {
 
 .dashboard-link:hover {
     opacity: 1;
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 /* --- 概要カード 4列グリッド --- */
@@ -9130,11 +9072,9 @@ body {
     align-items: center;
     justify-content: center;
     padding: 1.2rem 0.8rem;
-    background: var(--surface-glass);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     box-shadow: var(--shadow-sm);
     transition: transform var(--transition), box-shadow var(--transition);
 }
@@ -9503,7 +9443,7 @@ body {
     align-items: center;
     gap: 0.3rem;
     padding: 0.3rem 0.7rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     font-size: 0.72rem;
     font-weight: 600;
     line-height: 1;
@@ -9658,7 +9598,7 @@ body {
     letter-spacing: 0.03em;
     padding: 0.15rem 0.5rem;
     background: var(--bg-warm);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     border: 1px solid var(--border-subtle);
 }
 
@@ -9679,7 +9619,7 @@ body {
     font-weight: 500;
     letter-spacing: 0.04em;
     padding: 0.2rem 0.75rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     margin: 0.5rem 0;
     border: 1px solid transparent;
 }
@@ -9710,7 +9650,7 @@ body {
     color: var(--text-muted);
     background: var(--bg-warm);
     padding: 0.1rem 0.5rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     margin-left: 0.5rem;
     vertical-align: middle;
     border: 1px solid var(--border-subtle);
@@ -9849,7 +9789,7 @@ body {
 }
 
 .legal-list li::marker {
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 /* テーブル */
@@ -9903,7 +9843,7 @@ body {
 }
 
 .footer-legal-links a:hover {
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 .footer-sep {
@@ -10105,7 +10045,7 @@ body {
     justify-content: center;
     gap: 4px;
     font-size: 0.7rem;
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 .satisfaction-bar {
@@ -10118,7 +10058,7 @@ body {
 
 .satisfaction-fill {
     height: 100%;
-    background: var(--accent-gold);
+    background: var(--accent);
     border-radius: 2px;
     transition: width 1s ease;
 }
@@ -10153,7 +10093,7 @@ body {
 .trouble-bar {
     flex: 1;
     max-width: 60px;
-    background: linear-gradient(to top, var(--rose), var(--rose-soft));
+    background: linear-gradient(to top, var(--accent), var(--accent-soft));
     border-radius: 8px 8px 0 0;
     position: relative;
     transition: height 1s ease;
@@ -10211,8 +10151,8 @@ body {
     font-size: 0.65rem;
     padding: 2px 8px;
     border-radius: 10px;
-    background: var(--rose-soft);
-    color: var(--rose-hover);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
     font-weight: 600;
     margin-bottom: 8px;
 }
@@ -10310,7 +10250,7 @@ body {
 .recommended-section {
     margin-bottom: 24px;
     padding: 20px;
-    background: linear-gradient(135deg, var(--accent-gold-soft), var(--surface));
+    background: linear-gradient(135deg, var(--accent-soft), var(--surface));
     border-radius: 20px;
 }
 
@@ -10360,8 +10300,8 @@ body {
 
 /* 1位: ゴールド */
 .recommended-card:nth-child(2) .recommended-rank {
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 /* 2位: グリーン */
@@ -10412,7 +10352,7 @@ body {
 .recommended-price {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 .recommended-grade {
@@ -10421,8 +10361,8 @@ body {
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 8px;
-    background: var(--accent-gold-soft);
-    color: var(--accent-gold);
+    background: var(--accent-soft);
+    color: var(--accent);
 }
 
 .recommended-disclaimer {
@@ -10435,7 +10375,7 @@ body {
 
 /* ダークモード対応: data-theme="dark" */
 [data-theme="dark"] .recommended-section {
-    background: linear-gradient(135deg, var(--accent-gold-soft), var(--bg-warm));
+    background: linear-gradient(135deg, var(--accent-soft), var(--bg-warm));
 }
 
 [data-theme="dark"] .recommended-card {
@@ -10449,7 +10389,7 @@ body {
 /* ダークモード対応: prefers-color-scheme */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) .recommended-section {
-        background: linear-gradient(135deg, var(--accent-gold-soft), var(--bg-warm));
+        background: linear-gradient(135deg, var(--accent-soft), var(--bg-warm));
     }
 
     :root:not([data-theme="light"]) .recommended-card {
@@ -10506,7 +10446,7 @@ body {
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    border: 2px solid var(--accent-gold);
+    border: 2px solid var(--accent);
     box-shadow: 0 2px 8px rgba(201, 168, 124, 0.2);
 }
 
@@ -10532,7 +10472,7 @@ body {
     gap: 4px;
     font-size: 0.75rem;
     padding: 4px 10px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     text-decoration: none;
     font-weight: 500;
     transition: opacity var(--transition), transform var(--transition);
@@ -10656,7 +10596,7 @@ body {
 
 .case-photo-price {
     font-size: 0.72rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 600;
 }
 
@@ -10711,7 +10651,7 @@ body {
     font-family: var(--font-en);
     font-size: 1.6rem;
     font-weight: 700;
-    color: var(--accent-gold);
+    color: var(--accent);
     letter-spacing: -0.02em;
     line-height: 1;
 }
@@ -10732,7 +10672,7 @@ body {
     align-items: center;
     gap: 4px;
     padding: 3px 10px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--bg-warm);
     border: 1px solid var(--border-subtle);
     font-size: 0.7rem;
@@ -10747,7 +10687,7 @@ body {
 }
 
 .cp-stat-chip--source {
-    background: var(--trust-blue-soft);
+    background: var(--accent-soft);
     border-color: rgba(123, 167, 194, 0.2);
 }
 
@@ -10774,7 +10714,7 @@ body {
 .cp-source-btn {
     padding: 0.3rem 0.85rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: transparent;
     font-family: var(--font-ja);
     font-size: 0.72rem;
@@ -10792,9 +10732,9 @@ body {
 }
 
 .cp-source-btn.active {
-    background: var(--trust-blue);
+    background: var(--accent);
     color: #fff;
-    border-color: var(--trust-blue);
+    border-color: var(--accent);
 }
 
 /* グリッド — モバイル2列、デスクトップ3-4列 */
@@ -10843,7 +10783,7 @@ body {
 .cp-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
-    border-color: var(--accent-gold);
+    border-color: var(--accent);
 }
 
 .cp-card:active {
@@ -10943,7 +10883,7 @@ body {
 
 .cp-card-price {
     font-size: 0.72rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-weight: 600;
     flex-shrink: 0;
 }
@@ -10957,7 +10897,7 @@ body {
 .cp-card-tag {
     font-size: 0.6rem;
     padding: 1px 6px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--bg-warm);
     color: var(--text-muted);
     font-weight: 400;
@@ -10965,9 +10905,9 @@ body {
 }
 
 .cp-card-tag--source {
-    background: var(--trust-blue-soft);
+    background: var(--accent-soft);
     border-color: rgba(123, 167, 194, 0.15);
-    color: var(--trust-blue);
+    color: var(--accent);
 }
 
 /* 空ステート */
@@ -11002,8 +10942,6 @@ body {
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     animation: cpLbFadeIn 0.25s ease;
     padding: 20px;
 }
@@ -11136,35 +11074,35 @@ body {
 .cp-lb-price {
     font-size: 0.88rem;
     font-weight: 600;
-    color: var(--accent-gold);
+    color: var(--accent);
 }
 
 .cp-lb-tag {
     font-size: 0.72rem;
     padding: 3px 10px;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: var(--bg-warm);
     color: var(--text-secondary);
     border: 1px solid var(--border-subtle);
 }
 
 .cp-lb-tag--source {
-    background: var(--trust-blue-soft);
+    background: var(--accent-soft);
     border-color: rgba(123, 167, 194, 0.2);
-    color: var(--trust-blue);
+    color: var(--accent);
 }
 
 .cp-lb-source-link {
     display: inline-block;
     margin-top: 4px;
     font-size: 0.8rem;
-    color: var(--trust-blue);
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .cp-lb-source-link:hover {
-    color: var(--accent-gold);
+    color: var(--accent);
     text-decoration: underline;
 }
 
