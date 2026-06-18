@@ -1,23 +1,12 @@
-// AURA Service Worker — オフラインサポート
-const CACHE_NAME = 'aura-v6';
-const STATIC_ASSETS = [
-    '/',
-    '/static/css/style.css',
-    '/static/js/app.js',
-    '/static/manifest.json',
-    '/static/icons/icon.svg',
-];
+// AURA Service Worker — ネットワークファースト戦略
+const CACHE_NAME = 'aura-v7';
 
-// インストール: 静的アセットをプリキャッシュ
+// インストール: 即座にactivateさせる
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(STATIC_ASSETS))
-            .then(() => self.skipWaiting())
-    );
+    self.skipWaiting();
 });
 
-// アクティベート: 古いキャッシュを削除
+// アクティベート: 古いキャッシュを全削除
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then(keys =>
@@ -29,19 +18,17 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// フェッチ: ネットワークファースト、失敗時はキャッシュ
+// フェッチ: ネットワークファースト（開発中はキャッシュを使わない）
 self.addEventListener('fetch', (event) => {
-    const url = new URL(event.request.url);
-
     // APIリクエストはキャッシュしない
-    if (url.pathname.startsWith('/api/')) {
+    if (event.request.url.includes('/api/')) {
         return;
     }
 
     event.respondWith(
         fetch(event.request)
             .then(response => {
-                // 成功レスポンスをキャッシュに保存
+                // 有効なレスポンスをキャッシュに保存
                 if (response.ok) {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then(cache => {
@@ -51,7 +38,7 @@ self.addEventListener('fetch', (event) => {
                 return response;
             })
             .catch(() => {
-                // オフライン時はキャッシュから返却
+                // オフライン時のみキャッシュから返す
                 return caches.match(event.request);
             })
     );

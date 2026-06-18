@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=6">
+    <link rel="stylesheet" href="/static/css/style.css?v=7">
 
     <!-- JSON-LD構造化データ（SEO） -->
     <!-- JSON-LD 構造化データ: WebApplication -->
@@ -685,13 +685,17 @@
         </a>
     </nav>
 
-    <script src="/static/js/app.js?v=6"></script>
+    <script src="/static/js/app.js?v=7"></script>
     <script>
-    // Service Worker登録
+    // Service Worker登録 — 最新バージョンを強制適用
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('SW登録成功:', reg.scope))
+                .then(reg => {
+                    console.log('SW登録成功:', reg.scope);
+                    // 最新版を強制チェック
+                    reg.update();
+                })
                 .catch(err => console.warn('SW登録失敗:', err));
         });
     }

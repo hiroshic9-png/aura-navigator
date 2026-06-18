@@ -450,12 +450,35 @@ async def get_clinic(clinic_id: str, db: AsyncSession = Depends(get_db)):
     )
     doctors = doc_result.scalars().all()
     from src.analyzers.doctor_scoring import get_trust_level
+    # ドクターデータの安全な文字列化ヘルパー
+    def _safe_str_list(raw_json: str | None) -> list[str]:
+        """JSON文字列をパースし、各要素を文字列に正規化する"""
+        if not raw_json:
+            return []
+        try:
+            parsed = json.loads(raw_json)
+            if not isinstance(parsed, list):
+                return []
+            result = []
+            for item in parsed:
+                if isinstance(item, str):
+                    result.append(item)
+                elif isinstance(item, dict):
+                    # {"name": "..."} 形式のオブジェクト対応
+                    result.append(item.get("name", str(item)))
+                else:
+                    result.append(str(item))
+            return result
+        except (json.JSONDecodeError, TypeError):
+            return []
+
     data["doctors"] = [
         {
+            "id": d.id,
             "name": d.name,
             "title": d.title or "",
-            "specialties": json.loads(d.specialties) if d.specialties else [],
-            "certifications": json.loads(d.board_certifications) if d.board_certifications else [],
+            "specialties": _safe_str_list(d.specialties),
+            "certifications": _safe_str_list(d.board_certifications),
             "experience_years": d.experience_years,
             "profile_url": d.profile_url,
             "trust_score": d.trust_score,
