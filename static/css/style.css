@@ -29,8 +29,8 @@
     --bg-warm:        #f3f1ed;
     --bg-warm-alt:    #eee9e3;
     --surface:        #ffffff;
-    --border:         #eae8e4;
-    --border-subtle:  #f0ede8;
+    --border:         #ddd9d3;
+    --border-subtle:  #e8e4de;
 
     /* テキスト階層 */
     --text:           #1a1a1a;
@@ -68,7 +68,7 @@
 
     /* 追加トークン */
     --bg-elevated:  #f9f8f6;
-    --card-border:  #eae8e4;
+    --card-border:  #ddd9d3;
     --accent-blue:  #3b82f6;
     --primary:      #2c4a3e;
 }
@@ -287,7 +287,7 @@ main {
     transform: translateX(-50%);
     width: 60px;
     height: 2px;
-    background: var(--accent), transparent);
+    background: linear-gradient(to right, var(--accent), transparent);
     border-radius: 1px;
     z-index: 2;
 }
@@ -1268,7 +1268,7 @@ main {
     left: 0;
     width: 3px;
     height: 100%;
-    background: var(--accent), var(--accent-hover));
+    background: var(--accent);
     border-radius: 3px 0 0 3px;
     opacity: 0.4;
     transition: opacity var(--transition);
@@ -1314,7 +1314,7 @@ main {
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--accent) 100%);
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.08) 100%);
     border-radius: inherit;
     pointer-events: none;
 }
@@ -1627,7 +1627,7 @@ main {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: var(--accent), var(--accent-hover));
+    background: var(--accent);
     color: #ffffff;
     font-family: var(--font-en);
     font-size: 0.7rem;
@@ -3734,7 +3734,7 @@ body {
     left: 0;
     width: 4px;
     height: 100%;
-    background: var(--accent), var(--accent-hover));
+    background: var(--accent);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -5684,7 +5684,7 @@ body {
     left: 0;
     width: 100%;
     height: 3px;
-    background: var(--accent), transparent);
+    background: linear-gradient(to right, var(--accent), transparent);
     opacity: 0;
     transition: opacity var(--transition);
 }
@@ -6104,7 +6104,7 @@ body {
 .dd-axis-fill {
     height: 100%;
     border-radius: 3px;
-    background: var(--accent), var(--accent-hover));
+    background: var(--accent);
     transition: width 0.6s ease;
 }
 
