@@ -10511,11 +10511,17 @@ body {
     aspect-ratio: 3 / 4;
 }
 
-/* 目もと — 横長画像の中央を表示（目のアップ写真は中央に目がある） */
+/* 目もと — 横長画像をそのまま表示（SBCの二重写真は左右の目を横に撮影） */
+.cp-cat-eyes .cp-card-img,
+[data-category="eyes"] .cp-card-img {
+    aspect-ratio: 4 / 3;
+}
 .cp-cat-eyes .cp-card-img img,
 .cp-cat-eyes .case-photo-img img,
 [data-category="eyes"] .cp-card-img img {
+    object-fit: contain;
     object-position: center center;
+    background: var(--bg-warm-alt);
 }
 
 /* 鼻 — 顔の中央やや上を表示 */
@@ -10936,15 +10942,19 @@ body {
 
 .cp-lb-img {
     position: relative;
-    aspect-ratio: 3 / 4;
+    min-height: 200px;
+    max-height: 70vh;
     overflow: hidden;
     background: var(--bg-warm-alt);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cp-lb-img img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .cp-lb-label {
