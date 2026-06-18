@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=20260618">
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
 
     <!-- JSON-LD構造化データ（SEO） -->
     <!-- JSON-LD 構造化データ: WebApplication -->
@@ -135,18 +135,22 @@
                 <h2 class="section-heading">気になるのは、どこですか？</h2>
                 <div class="concern-grid">
                     <button class="concern-card" onclick="navigateWithConcern('eye')">
+                        <span class="concern-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
                         <span class="concern-label">目もと</span>
                         <span class="concern-sub">二重・クマ・まぶたの重さ</span>
                     </button>
                     <button class="concern-card" onclick="navigateWithConcern('nose')">
+                        <span class="concern-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v14M8 20c0-2 1.5-4 4-4s4 2 4 4"/></svg></span>
                         <span class="concern-label">鼻</span>
                         <span class="concern-sub">高さ・団子鼻・小鼻</span>
                     </button>
                     <button class="concern-card" onclick="navigateWithConcern('skin')">
+                        <span class="concern-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="10" r="7"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg></span>
                         <span class="concern-label">肌</span>
                         <span class="concern-sub">シミ・毛穴・ニキビ跡</span>
                     </button>
                     <button class="concern-card" onclick="navigateWithConcern('contour')">
+                        <span class="concern-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8 2 5 5 5 9c0 3 1 5 3 7l4 6 4-6c2-2 3-4 3-7 0-4-3-7-7-7z"/></svg></span>
                         <span class="concern-label">輪郭</span>
                         <span class="concern-sub">小顔・エラ・フェイスライン</span>
                     </button>
@@ -681,7 +685,7 @@
         </a>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=3"></script>
     <script>
     // Service Worker登録
     if ('serviceWorker' in navigator) {

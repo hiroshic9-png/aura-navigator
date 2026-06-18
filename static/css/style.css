@@ -267,7 +267,7 @@ main {
    ------------------------------------------ */
 .hero {
     position: relative;
-    min-height: 420px;
+    min-height: auto;
     overflow: hidden;
     margin: 0 -1.25rem;
     padding: 0;
@@ -351,10 +351,13 @@ main {
 }
 
 .concern-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
     gap: 0.5rem;
     margin-top: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
 }
 
 /* カード — 角丸ベースにリデザイン */
@@ -362,6 +365,9 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    flex: 0 0 auto;
+    min-width: 120px;
+    scroll-snap-align: start;
     padding: 1.5rem 1.25rem;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -394,7 +400,15 @@ main {
 }
 
 /* SVGアイコンエリア */
-
+.concern-icon {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.concern-icon svg {
+    width: 24px;
+    height: 24px;
+}
 
 @media (hover: hover) {
     .concern-card:hover 
@@ -423,16 +437,12 @@ main {
 }
 
 .price-truth-item {
-    padding: 1.5rem 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.price-truth-item:first-child {
-    border-top: 1px solid var(--border);
-}
-
-.price-truth-item:last-child {
-    border-bottom: 1px solid var(--border);
+    padding: 1.25rem;
+    margin: 0 0 0.75rem 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .pt-name {
@@ -2226,7 +2236,7 @@ main {
 }
 
 .transparency-fill--high {
-    background: var(--accent), #4CAF85);
+    background: var(--accent);
 }
 
 .transparency-fill--mid {
@@ -2638,7 +2648,7 @@ main {
 }
 
 .sentiment-pos {
-    background: var(--accent), #4CAF85);
+    background: var(--accent);
 }
 
 .sentiment-neu {
@@ -2909,7 +2919,7 @@ main {
    フッター
    ------------------------------------------ */
 .site-footer {
-    background: var(--accent);
+    background: #1a1a1a;
     color: rgba(255, 255, 255, 0.7);
     padding: 3rem 1.25rem 2rem;
     margin-top: 2rem;
@@ -9277,7 +9287,7 @@ body {
 .trouble-bar {
     flex: 1;
     max-width: 60px;
-    background: var(--accent), var(--accent-soft));
+    background: #1a1a1a;
     border-radius: 8px 8px 0 0;
     position: relative;
     transition: height 1s ease;
