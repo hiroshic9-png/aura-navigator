@@ -25,13 +25,10 @@
 }
 
 :root {
-    /* 色彩 — LIPS準拠の白基調デザイン
-       LIPS実測値: elevation-high=#fff, elevation-low=#fafafa,
-       surface=#f7f7f7, border-separation=rgba(0,0,0,0.05)
-       AURAはウォームトーンにシフト */
-    --bg:             #faf9f7;
-    --bg-warm:        #f5f3ef;
-    --bg-warm-alt:    #efece7;
+    /* 色彩 — 白基調（LIPS準拠） */
+    --bg:             #ffffff;
+    --bg-warm:        #fafafa;
+    --bg-warm-alt:    #f5f5f5;
     --surface:        #ffffff;
     --border:         rgba(0, 0, 0, 0.08);
     --border-subtle:  rgba(0, 0, 0, 0.05);
