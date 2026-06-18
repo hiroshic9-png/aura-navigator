@@ -7,14 +7,17 @@ AURA MVP — お気に入り・比較API
 
 import json
 import logging
+from collections import Counter
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.database import get_db, ClinicTable
+from src.db.database import (
+    get_db, ClinicTable, ClinicProcedure, ProcedureTable, ReviewTable,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -173,7 +176,13 @@ async def compare_clinics(
     req: CompareRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """複数クリニックを比較する"""
+    """
+    複数クリニックを比較する
+
+    各クリニックの基本情報に加え、施術価格・口コミセンチメント分布・
+    強み/懸念点・共通施術の価格比較を返却する。
+    N+1回避のため一括クエリを使用。
+    """
     # クリニック情報取得
     result = await db.execute(
         select(ClinicTable).where(ClinicTable.id.in_(req.clinic_ids))
@@ -186,70 +195,137 @@ async def compare_clinics(
             detail="比較には2つ以上の有効なクリニックIDが必要です",
         )
 
-    # 基本比較データ構築
+    clinic_ids = [c.id for c in clinics]
+
+    # === 施術データを一括取得（N+1回避） ===
+    proc_result = await db.execute(
+        select(ClinicProcedure, ProcedureTable)
+        .join(ProcedureTable, ClinicProcedure.procedure_id == ProcedureTable.id)
+        .where(ClinicProcedure.clinic_id.in_(clinic_ids))
+        .where(ClinicProcedure.is_active == True)
+    )
+    proc_rows = proc_result.all()
+
+    # クリニックごとの施術マップ: {clinic_id: [(proc_name, price, proc_id), ...]}
+    clinic_procs: dict[str, list[tuple[str, int | None, str]]] = {}
+    # 施術ごとのクリニック価格マップ: {proc_name: {clinic_id: price}}
+    procedure_clinic_prices: dict[str, dict[str, int | None]] = {}
+    # 施術ごとのクリニック価格ソースマップ: {proc_name: {clinic_id: source}}
+    procedure_clinic_sources: dict[str, dict[str, str]] = {}
+    for cp, proc in proc_rows:
+        clinic_procs.setdefault(cp.clinic_id, []).append(
+            (proc.name, cp.price_advertised, proc.id)
+        )
+        procedure_clinic_prices.setdefault(proc.name, {})[cp.clinic_id] = cp.price_advertised
+        procedure_clinic_sources.setdefault(proc.name, {})[cp.clinic_id] = cp.source or 'unknown'
+
+    # === 口コミデータを一括取得 ===
+    reviews_result = await db.execute(
+        select(ReviewTable)
+        .where(ReviewTable.clinic_id.in_(clinic_ids))
+        .where(ReviewTable.is_spam != True)
+    )
+    all_reviews = reviews_result.scalars().all()
+
+    # クリニックごとの口コミリスト
+    clinic_reviews: dict[str, list] = {}
+    for r in all_reviews:
+        clinic_reviews.setdefault(r.clinic_id, []).append(r)
+
+    # === 各クリニックの比較データ構築 ===
     clinic_data = []
     for c in clinics:
+        # 施術上位3件（価格降順、価格nullは末尾）
+        procs = clinic_procs.get(c.id, [])
+        procs_sorted = sorted(
+            procs,
+            key=lambda x: x[1] if x[1] is not None else 0,
+            reverse=True,
+        )[:3]
+        top_procedures = []
+        for name, price, pid in procs_sorted:
+            top_procedures.append({
+                "name": name,
+                "price": price,
+                "price_display": f"\u00a5{price:,}" if price else None,
+            })
+
+        # 口コミセンチメント分布
+        reviews = clinic_reviews.get(c.id, [])
+        pos_count = 0
+        neu_count = 0
+        neg_count = 0
+        for r in reviews:
+            if r.sentiment_score is not None:
+                if r.sentiment_score > 0.2:
+                    pos_count += 1
+                elif r.sentiment_score < -0.2:
+                    neg_count += 1
+                else:
+                    neu_count += 1
+        scored_total = pos_count + neu_count + neg_count
+        if scored_total > 0:
+            review_sentiment = {
+                "positive": round(pos_count / scored_total * 100),
+                "neutral": round(neu_count / scored_total * 100),
+                "negative": round(neg_count / scored_total * 100),
+            }
+        else:
+            review_sentiment = {"positive": 0, "neutral": 0, "negative": 0}
+
+        # 強み/懸念点の抽出
+        strengths = _extract_compare_highlights(reviews, positive=True)
+        concerns = _extract_compare_highlights(reviews, positive=False)
+
         data = {
             "id": c.id,
             "name": c.name,
-            "branch_name": c.branch_name,
-            "address": c.address,
+            "city": c.city,
+            "clinic_grade": c.clinic_grade,
+            "clinic_score": c.clinic_score,
             "google_rating": c.google_rating,
             "google_review_count": c.google_review_count,
-            "phone": c.phone,
-            "website": c.website,
             "transparency_score": c.transparency_score,
-            "opening_hours": c.opening_hours,
-            "doctor_count": c.doctor_count,
+            "editorial_summary": c.editorial_summary,
+            "top_procedures": top_procedures,
+            "review_sentiment": review_sentiment,
+            "strengths": strengths,
+            "concerns": concerns,
         }
         clinic_data.append(data)
 
-    # 施術別価格比較（procedure_idが指定されている場合）
-    price_comparison = {}
-    if req.procedure_id:
-        price_rows = await db.execute(
-            text("""
-                SELECT cp.clinic_id, cp.price_advertised, cp.price_display,
-                       p.name as procedure_name
-                FROM clinic_procedures cp
-                JOIN procedures p ON cp.procedure_id = p.id
-                WHERE cp.clinic_id IN :clinic_ids
-                  AND cp.procedure_id = :proc_id
-                  AND cp.price_advertised > 0
-            """),
-            {
-                "clinic_ids": tuple(req.clinic_ids),
-                "proc_id": req.procedure_id,
-            },
-        )
-        for row in price_rows:
-            price_comparison[row.clinic_id] = {
-                "price": row.price_advertised,
-                "display": row.price_display,
-                "procedure": row.procedure_name,
-            }
+    # === 共通施術の価格比較を生成 ===
+    common_procedures = []
+    clinic_id_set = set(clinic_ids)
+    for proc_name, prices_map in procedure_clinic_prices.items():
+        # 全比較クリニックがこの施術を提供しているか
+        if set(prices_map.keys()) >= clinic_id_set:
+            sources_map = procedure_clinic_sources.get(proc_name, {})
+            common_procedures.append({
+                "name": proc_name,
+                "prices": {cid: prices_map.get(cid) for cid in clinic_ids},
+                "sources": {cid: sources_map.get(cid, 'unknown') for cid in clinic_ids},
+            })
+    # 施術名でソート
+    common_procedures.sort(key=lambda x: x["name"])
 
-    # 比較マトリクス
+    # 比較マトリクス（後方互換性維持）
     comparison_matrix = {
         "ratings": {c["id"]: c["google_rating"] for c in clinic_data},
         "review_counts": {c["id"]: c["google_review_count"] for c in clinic_data},
         "transparency_scores": {c["id"]: c["transparency_score"] for c in clinic_data},
-        "has_phone": {c["id"]: bool(c["phone"]) for c in clinic_data},
-        "has_website": {c["id"]: bool(c["website"]) for c in clinic_data},
-        "doctor_counts": {c["id"]: c["doctor_count"] for c in clinic_data},
     }
 
-    if price_comparison:
-        comparison_matrix["prices"] = price_comparison
-
     # インサイト生成
-    insights = _generate_comparison_insights(clinic_data, price_comparison)
+    insights = _generate_comparison_insights(clinic_data, {})
 
     return {
         "clinics": clinic_data,
+        "common_procedures": common_procedures,
         "comparison_matrix": comparison_matrix,
         "insights": insights,
     }
+
 
 
 def _generate_comparison_insights(
@@ -310,3 +386,50 @@ def _generate_comparison_insights(
         )
 
     return insights
+
+
+# ハイライト抽出用キーワード（比較モーダル用）
+_COMPARE_POSITIVE_KEYWORDS: list[str] = [
+    "カウンセリングが丁寧", "説明が丁寧", "清潔", "きれい",
+    "仕上がりが自然", "痛みが少ない", "スタッフが親切",
+    "親切", "丁寧", "安心", "コスパ", "リーズナブル",
+    "アフターケアが充実", "予約が取りやすい", "個室",
+]
+
+_COMPARE_NEGATIVE_KEYWORDS: list[str] = [
+    "待ち時間が長い", "待たされ", "予約が取れない",
+    "追加料金", "強引な勧誘", "押し売り",
+    "態度が悪い", "冷たい", "不自然", "左右差",
+    "説明不足", "狭い",
+]
+
+
+def _extract_compare_highlights(reviews: list, positive: bool = True) -> list[str]:
+    """
+    比較用ハイライト（強み / 懸念点）を抽出する
+
+    sentiment_scoreが高い/低い口コミからキーワードマッチで頻出フレーズを抽出。
+    上位3件を返す。
+    """
+    keywords = _COMPARE_POSITIVE_KEYWORDS if positive else _COMPARE_NEGATIVE_KEYWORDS
+    threshold = 0.1 if positive else -0.1
+
+    matched: list[str] = []
+    for r in reviews:
+        if r.sentiment_score is None or not r.text:
+            continue
+        if positive and r.sentiment_score < threshold:
+            continue
+        if not positive and r.sentiment_score > threshold:
+            continue
+        for kw in keywords:
+            if kw in r.text:
+                matched.append(kw)
+
+    # 頻出順に上位3件（重複なし）
+    counter = Counter(matched)
+    result = []
+    for kw, _ in counter.most_common():
+        if kw not in result and len(result) < 3:
+            result.append(kw)
+    return result

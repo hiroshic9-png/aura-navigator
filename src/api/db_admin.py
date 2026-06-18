@@ -9,11 +9,12 @@ import json
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import (
-    AuditLog, ClinicTable, DataVersion, ProcedureTable,
+    AuditLog, ClinicProcedure, ClinicTable, DataVersion,
+    DoctorTable, ProcedureTable, ReviewTable,
     get_db,
 )
 from src.db.operations import check_db_integrity, export_table_json, get_latest_version
@@ -157,3 +158,146 @@ async def db_stats(db: AsyncSession = Depends(get_db)):
             },
         },
     }
+
+
+@router.get("/data-quality")
+async def data_quality_dashboard(db: AsyncSession = Depends(get_db)):
+    """データ品質ダッシュボード — 管理者向けデータ充実度・品質指標の一括取得"""
+
+    # --- 概要 ---
+    total_clinics = await db.scalar(
+        select(func.count(ClinicTable.id)).where(ClinicTable.is_active == True)
+    ) or 0
+    total_doctors = await db.scalar(
+        select(func.count(DoctorTable.id)).where(DoctorTable.is_active == True)
+    ) or 0
+    total_reviews = await db.scalar(select(func.count(ReviewTable.id))) or 0
+    total_procedures = await db.scalar(select(func.count(ProcedureTable.id))) or 0
+    total_clinic_procedures = await db.scalar(select(func.count(ClinicProcedure.id))) or 0
+
+    # --- 価格カバー率（カテゴリ別） ---
+    # clinic_proceduresのうち price_advertised が入っているものの割合
+    price_rows = await db.execute(
+        select(
+            ProcedureTable.category,
+            func.count(ClinicProcedure.id).label("total"),
+            func.count(
+                case(
+                    (ClinicProcedure.price_advertised.isnot(None), ClinicProcedure.id),
+                    else_=None,
+                )
+            ).label("with_price"),
+        )
+        .join(ProcedureTable, ClinicProcedure.procedure_id == ProcedureTable.id)
+        .group_by(ProcedureTable.category)
+        .order_by(ProcedureTable.category)
+    )
+    by_category = []
+    price_total_count = 0
+    price_total_all = 0
+    cat_labels = {
+        "eye": "目元",
+        "nose": "鼻",
+        "skin": "肌",
+        "contour": "輪郭",
+        "anti_aging": "エイジング",
+        "body": "痩身",
+        "breast": "バスト",
+        "hair_removal": "脱毛",
+    }
+    for row in price_rows:
+        cat, total, with_price = row[0], row[1], row[2]
+        pct = round(with_price / total * 100, 1) if total > 0 else 0
+        by_category.append({
+            "category": cat_labels.get(cat, cat or "その他"),
+            "category_key": cat,
+            "count": with_price,
+            "total": total,
+            "pct": pct,
+        })
+        price_total_count += with_price
+        price_total_all += total
+
+    price_coverage = {
+        "total": {
+            "count": price_total_count,
+            "total": price_total_all,
+            "pct": round(price_total_count / price_total_all * 100, 1) if price_total_all > 0 else 0,
+        },
+        "by_category": by_category,
+    }
+
+    # --- グレード分布 ---
+    grade_rows = await db.execute(
+        select(ClinicTable.clinic_grade, func.count(ClinicTable.id))
+        .where(ClinicTable.is_active == True, ClinicTable.clinic_grade.isnot(None))
+        .group_by(ClinicTable.clinic_grade)
+        .order_by(ClinicTable.clinic_grade)
+    )
+    grade_distribution = [
+        {"grade": g[0], "count": g[1]} for g in grade_rows
+    ]
+
+    # --- 口コミ品質 ---
+    avg_rating = await db.scalar(
+        select(func.avg(ReviewTable.rating)).where(ReviewTable.rating.isnot(None))
+    )
+    with_sentiment = await db.scalar(
+        select(func.count(ReviewTable.id)).where(ReviewTable.sentiment_score.isnot(None))
+    ) or 0
+    with_aspects = await db.scalar(
+        select(func.count(ReviewTable.id)).where(ReviewTable.aspects.isnot(None))
+    ) or 0
+
+    # 感情分布（sentiment_score を positive/neutral/negative に分類）
+    pos_count = await db.scalar(
+        select(func.count(ReviewTable.id)).where(ReviewTable.sentiment_score > 0.3)
+    ) or 0
+    neg_count = await db.scalar(
+        select(func.count(ReviewTable.id)).where(ReviewTable.sentiment_score < -0.3)
+    ) or 0
+    neutral_count = total_reviews - pos_count - neg_count if total_reviews > 0 else 0
+
+    sentiment_distribution = {}
+    if total_reviews > 0:
+        sentiment_distribution = {
+            "positive": round(pos_count / total_reviews * 100, 1),
+            "neutral": round(neutral_count / total_reviews * 100, 1),
+            "negative": round(neg_count / total_reviews * 100, 1),
+        }
+
+    review_quality = {
+        "total": total_reviews,
+        "with_sentiment": with_sentiment,
+        "with_aspects": with_aspects,
+        "avg_rating": round(avg_rating, 2) if avg_rating else 0,
+        "sentiment_distribution": sentiment_distribution,
+    }
+
+    # --- データ鮮度 ---
+    last_clinic_update = await db.scalar(
+        select(func.max(ClinicTable.updated_at))
+    )
+    last_review_update = await db.scalar(
+        select(func.max(ReviewTable.created_at))
+    )
+
+    data_freshness = {
+        "last_clinic_update": last_clinic_update.isoformat().split("T")[0] if last_clinic_update else None,
+        "last_review_update": last_review_update.isoformat().split("T")[0] if last_review_update else None,
+    }
+
+    return {
+        "overview": {
+            "total_clinics": total_clinics,
+            "total_doctors": total_doctors,
+            "total_reviews": total_reviews,
+            "total_procedures": total_procedures,
+            "total_clinic_procedures": total_clinic_procedures,
+        },
+        "price_coverage": price_coverage,
+        "grade_distribution": grade_distribution,
+        "review_quality": review_quality,
+        "data_freshness": data_freshness,
+    }
+

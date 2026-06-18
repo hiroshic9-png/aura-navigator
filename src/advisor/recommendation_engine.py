@@ -14,12 +14,13 @@ import json
 import logging
 import math
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.database import ClinicTable, ProcedureTable, ClinicProcedure, DoctorTable, ReviewTable
+from src.db.database import ClinicTable, ProcedureTable, ClinicProcedure, DoctorTable, ReviewTable, CasePhotoTable
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ class ClinicMatch:
     website: str | None = None
     transparency_score: float | None = None  # AURA透明性スコア
     review_summary: dict | None = None       # 口コミ分析サマリー（将来用）
+    case_photo_count: int = 0                # 症例写真件数
 
 
 @dataclass
@@ -262,6 +264,36 @@ def estimate_dt_days(dt_real_text: str) -> int | None:
 # ==========================================
 # スコアリングエンジン
 # ==========================================
+# 口コミ Time Decay（時間減衰）
+# ==========================================
+
+
+def time_decay_weight(review_date, half_life_days=365):
+    """
+    口コミの鮮度に基づく重みを算出（指数減衰）
+
+    半減期365日: 1年前の口コミは重み0.5、2年前は0.25...
+    新しい口コミほど重みが大きくなる。
+
+    Args:
+        review_date: 口コミの投稿日時（datetime）
+        half_life_days: 半減期（日数）、デフォルト365日
+
+    Returns:
+        0.0〜1.0 の重み値
+    """
+    if not review_date:
+        return 0.5  # 日付不明の場合は中間値
+    # timezoneが設定されていない場合はUTCとみなす
+    if review_date.tzinfo is None:
+        review_date = review_date.replace(tzinfo=timezone.utc)
+    days_ago = (datetime.now(timezone.utc) - review_date).days
+    if days_ago < 0:
+        days_ago = 0
+    return math.exp(-0.693 * days_ago / half_life_days)
+
+
+# ==========================================
 
 def calculate_quality_score(
     google_rating: float | None,
@@ -270,17 +302,25 @@ def calculate_quality_score(
     departments: list[str],
     transparency_score: float | None = None,
     review_sentiment: float | None = None,
+    review_data: list[dict] | None = None,
+    case_photo_count: int = 0,
 ) -> float:
     """
     品質スコアを算出（0-100）
 
-    構成（6軸）:
+    構成（7軸）:
     - Google評価: 最大30pt（4.5以上=30, 4.0=22, 3.5=15, 3.0=8, なし=11）
     - 口コミ件数: 最大18pt（100件以上=18, 50件=12, 10件=4）
-    - 口コミ評判: 最大10pt（感情スコア-1.0〜+1.0を正規化）
+    - 口コミ評判: 最大10pt（感情スコア-1.0〜+1.0を正規化、時間減衰適用）
     - 専門医在籍: 13pt
     - 診療科の幅: 最大14pt（美容外科+形成外科=14, 美容外科のみ=9）
-    - 透明性スコア: 最大15pt（AURA独自指標、情報開示度を反映）
+    - 透明性スコア: 最大5pt（AURA独自指標、情報開示度を反映）
+    - 症例写真充実度: 最大8pt（DEC-0044: 症例写真起点への構造転換）
+
+    Args:
+        review_data: 口コミデータのリスト [{"sentiment_score": float, "created_at": datetime}, ...]
+                     指定された場合、review_sentimentの代わりに時間減衰加重平均を使用
+        case_photo_count: クリニックに紐付いた症例写真の件数
     """
     score = 0.0
 
@@ -306,10 +346,24 @@ def calculate_quality_score(
     else:
         score += 3
 
-    # 口コミ評判（感情スコア）
-    if review_sentiment is not None:
+    # 口コミ評判（感情スコア） — Time Decay対応
+    effective_sentiment = review_sentiment
+    if review_data:
+        # 時間減衰加重平均を算出
+        weighted_sum = 0.0
+        weight_total = 0.0
+        for rv in review_data:
+            sentiment = rv.get("sentiment_score")
+            if sentiment is not None:
+                w = time_decay_weight(rv.get("created_at"))
+                weighted_sum += sentiment * w
+                weight_total += w
+        if weight_total > 0:
+            effective_sentiment = weighted_sum / weight_total
+
+    if effective_sentiment is not None:
         # -1.0〜+1.0 → 0〜10pt に正規化
-        sentiment_pt = max(0, min(10, (review_sentiment + 1.0) * 5))
+        sentiment_pt = max(0, min(10, (effective_sentiment + 1.0) * 5))
         score += sentiment_pt
     else:
         score += 5  # 未取得の場合は中間値
@@ -329,11 +383,23 @@ def calculate_quality_score(
     elif "美容皮膚科" in dept_set:
         score += 7
 
-    # 透明性スコア（AURA独自指標）
+    # 透明性スコア（参考情報として低い重みで反映）
+    # 注: 情報開示度がマッチングを過度に左右しないよう抑制（15pt→5pt）
     if transparency_score is not None and transparency_score > 0:
-        score += min(15, transparency_score * 0.15)
+        score += min(5, transparency_score * 0.05)
     else:
+        score += 2
+
+    # 症例写真充実度（DEC-0044: 症例写真起点への構造転換）
+    # 症例写真が多いクリニック = ユーザーが施術結果を確認しやすい = 情報価値が高い
+    if case_photo_count >= 100:
+        score += 8
+    elif case_photo_count >= 50:
+        score += 6
+    elif case_photo_count >= 20:
         score += 4
+    elif case_photo_count >= 5:
+        score += 2
 
     return min(100, score)
 
@@ -436,6 +502,35 @@ def generate_match_reasons(
     return reasons
 
 
+# レッドフラグカテゴリのラベル・深刻度定義
+RED_FLAG_LABELS = {
+    "pressure_sales": {
+        "label": "圧力販売",
+        "mild": "圧力販売に関する口コミが{count}件あります",
+        "severe": "強引な勧誘の報告が{count}件あります。断る準備をしてカウンセリングに臨んでください",
+        "threshold": 3,  # この件数以上で深刻表現に切り替え
+    },
+    "treatment_trouble": {
+        "label": "施術トラブル",
+        "mild": "施術結果への不満が{count}件報告されています",
+        "severe": "施術結果への不満が{count}件報告されています。詳細を確認してください",
+        "threshold": 2,  # 施術トラブルは深刻度が高いため閾値低め
+    },
+    "staff_issue": {
+        "label": "スタッフ対応",
+        "mild": "スタッフ対応に関する指摘が{count}件あります",
+        "severe": "スタッフ対応に関する苦情が{count}件あります。事前にカウンセリングの対応を見極めてください",
+        "threshold": 3,
+    },
+    "billing_issue": {
+        "label": "会計トラブル",
+        "mild": "料金に関する指摘が{count}件あります",
+        "severe": "料金に関するトラブルの報告が{count}件あります。見積もりを書面で確認してください",
+        "threshold": 2,
+    },
+}
+
+
 def generate_cautions(
     clinic: ClinicTable,
     departments: list[str],
@@ -443,7 +538,15 @@ def generate_cautions(
     google_review_count: int | None,
     review_summary: dict | None = None,
 ) -> list[str]:
-    """注意点を生成（口コミ分析データを含む）"""
+    """
+    注意点を生成（口コミ分析データ・レッドフラグ詳細分析を含む）
+
+    レッドフラグはカテゴリ別に件数を集計し、深刻度に応じて文面を変える:
+    - pressure_sales: 圧力販売
+    - treatment_trouble: 施術トラブル（深刻度高）
+    - staff_issue: スタッフ対応問題
+    - billing_issue: 会計トラブル（深刻度高）
+    """
     cautions = []
 
     if google_rating is not None and google_rating < 3.5:
@@ -467,6 +570,22 @@ def generate_cautions(
             if "待ち時間" in aspect:
                 cautions.append("待ち時間に関する指摘が複数あります")
                 break
+
+        # レッドフラグに基づく注意事項（カテゴリ別・深刻度別）
+        red_flags = review_summary.get("red_flags", {})
+        for category, count in red_flags.items():
+            if count < 1:
+                continue
+            config = RED_FLAG_LABELS.get(category)
+            if config:
+                threshold = config["threshold"]
+                if count >= threshold:
+                    cautions.append(config["severe"].format(count=count))
+                else:
+                    cautions.append(config["mild"].format(count=count))
+            else:
+                # 未定義カテゴリの場合は汎用メッセージ
+                cautions.append(f"口コミに「{category}」に関する指摘が{count}件あります")
 
     return cautions
 
@@ -601,6 +720,7 @@ async def recommend_clinics(
             ReviewTable.clinic_id,
             func.avg(ReviewTable.sentiment_score).label("avg_sentiment"),
             func.count(ReviewTable.id).label("review_count"),
+            func.avg(ReviewTable.quality_score).label("avg_quality"),
         )
         .where(ReviewTable.clinic_id.in_(clinic_ids))
         .where(ReviewTable.is_spam != True)
@@ -612,7 +732,26 @@ async def recommend_clinics(
         review_stats_map[row.clinic_id] = {
             "avg_sentiment": row.avg_sentiment,
             "review_count": row.review_count,
+            "avg_quality": round(row.avg_quality, 1) if row.avg_quality else None,
         }
+
+    # Time Decay用: 口コミ個別データ取得（sentiment_score + created_at）
+    review_detail_result = await db.execute(
+        select(
+            ReviewTable.clinic_id,
+            ReviewTable.sentiment_score,
+            ReviewTable.created_at,
+        )
+        .where(ReviewTable.clinic_id.in_(clinic_ids))
+        .where(ReviewTable.is_spam != True)
+        .where(ReviewTable.sentiment_score.isnot(None))
+    )
+    clinic_review_data: dict[str, list[dict]] = {}
+    for row in review_detail_result:
+        clinic_review_data.setdefault(row.clinic_id, []).append({
+            "sentiment_score": row.sentiment_score,
+            "created_at": row.created_at,
+        })
 
     # 口コミアスペクト集計（上位アスペクトを取得）
     aspect_result = await db.execute(
@@ -635,6 +774,39 @@ async def recommend_clinics(
                     clinic_aspects[row.clinic_id][aspect_name] += 1
         except (json.JSONDecodeError, TypeError):
             pass
+
+    # Phase 12: クリニック別レッドフラグ集計
+    red_flag_result = await db.execute(
+        select(ReviewTable.clinic_id, ReviewTable.red_flags)
+        .where(ReviewTable.clinic_id.in_(clinic_ids))
+        .where(ReviewTable.red_flags.isnot(None))
+        .where(ReviewTable.is_spam != True)
+    )
+    clinic_red_flags: dict[str, dict[str, int]] = {}
+    for row in red_flag_result:
+        try:
+            flags = json.loads(row.red_flags) if row.red_flags else []
+            for f in flags:
+                cat = f.get("category", "unknown")
+                clinic_red_flags.setdefault(row.clinic_id, {}).setdefault(cat, 0)
+                clinic_red_flags[row.clinic_id][cat] += 1
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    # 症例写真件数の一括取得（DEC-0044: 症例写真起点への構造転換）
+    photo_count_result = await db.execute(
+        select(
+            CasePhotoTable.clinic_id,
+            func.count(CasePhotoTable.id).label("photo_count"),
+        )
+        .where(CasePhotoTable.clinic_id.in_(clinic_ids))
+        .where(CasePhotoTable.is_active == True)
+        .where(CasePhotoTable.before_image_url.isnot(None))
+        .group_by(CasePhotoTable.clinic_id)
+    )
+    clinic_photo_counts: dict[str, int] = {}
+    for row in photo_count_result:
+        clinic_photo_counts[row.clinic_id] = row.photo_count
 
     # === Step 3: エリア解決 ===
     primary_city, adjacent_cities = resolve_area(conditions.area or "")
@@ -667,6 +839,21 @@ async def recommend_clinics(
             for doc in clinic_doctors
         )
 
+        # 医師の質を品質スコアに追加反映（specialties/experience_years活用）
+        doctor_quality_bonus = 0
+        for doc in clinic_doctors:
+            # 経験年数ボーナス（最大5pt）
+            if doc.experience_years and doc.experience_years >= 10:
+                doctor_quality_bonus = max(doctor_quality_bonus, 5)
+            elif doc.experience_years and doc.experience_years >= 5:
+                doctor_quality_bonus = max(doctor_quality_bonus, 3)
+            # 専門分野が明記されている（最大3pt）
+            if doc.specialties and doc.specialties != "[]":
+                doctor_quality_bonus = min(doctor_quality_bonus + 2, 8)
+            # trust_scoreが高い（最大4pt）
+            if doc.trust_score and doc.trust_score >= 60:
+                doctor_quality_bonus = min(doctor_quality_bonus + 4, 12)
+
         # エリアマッチ
         area_match = "none"
         if primary_city:
@@ -683,6 +870,9 @@ async def recommend_clinics(
         review_stats = review_stats_map.get(clinic.id)
         review_sentiment = review_stats["avg_sentiment"] if review_stats else None
 
+        # Time Decay用口コミデータ
+        rv_data = clinic_review_data.get(clinic.id)
+
         # 品質スコア
         quality_score = calculate_quality_score(
             clinic.google_rating,
@@ -691,11 +881,22 @@ async def recommend_clinics(
             departments,
             transparency_score=clinic.transparency_score,
             review_sentiment=review_sentiment,
+            review_data=rv_data,
+            case_photo_count=clinic_photo_counts.get(clinic.id, 0),
         )
+        # 医師データはUIの参考情報として保持するが、マッチスコアには影響させない
+        # 理由: 情報が多い医師＝良い医師ではない（情報開示バイアスの防止）
+        # doctor_quality_bonus は ClinicMatch.doctors に含めて表示用に使う
+
+        # 施術マッチングボーナス（+15pt）
+        # ユーザーの希望施術に対応するクリニックにボーナスを付与
+        procedure_match_bonus = 0
+        if clinic_proc_ids:  # clinic_proceduresテーブルに紐付けがある
+            procedure_match_bonus = 15
 
         # 総合スコア
         match_score = calculate_match_score(
-            quality_score, area_match,
+            quality_score + procedure_match_bonus, area_match,
             any_budget_fit, any_dt_fit,
             conditions.priority,
         )
@@ -717,6 +918,12 @@ async def recommend_clinics(
             reasons.append("公式サイトで施術メニュー確認済み")
         elif has_chain_data:
             reasons.append("同系列院のメニューデータあり")
+        # 症例写真充実度を理由に追加
+        photo_cnt = clinic_photo_counts.get(clinic.id, 0)
+        if photo_cnt >= 50:
+            reasons.append(f"症例写真 {photo_cnt}件（施術結果を確認できます）")
+        elif photo_cnt >= 10:
+            reasons.append(f"症例写真 {photo_cnt}件あり")
         # 口コミサマリー（cautionsより先に生成）
         review_summary = None
         if review_stats:
@@ -730,8 +937,13 @@ async def recommend_clinics(
             review_summary = {
                 "avg_sentiment": round(review_stats["avg_sentiment"], 2),
                 "review_count": review_stats["review_count"],
+                "avg_quality": review_stats.get("avg_quality"),
                 "top_aspects": top_aspects,
             }
+            # レッドフラグがあれば追加
+            flags = clinic_red_flags.get(clinic.id, {})
+            if flags:
+                review_summary["red_flags"] = flags
 
         cautions = generate_cautions(
             clinic, departments,
@@ -748,20 +960,67 @@ async def recommend_clinics(
         except (json.JSONDecodeError, TypeError):
             pass
 
-        # 医師情報（簡易）
+        # 医師情報（trust_score・資格・勤務経歴・JSAPSを含む強化版）
         doctor_info = []
+        # Phase 14: マッチした施術のカテゴリを収集
+        matched_categories = set()
+        for pm in clinic_procs:
+            for mp in matched_procedures:
+                if mp.procedure_id == pm["procedure_id"]:
+                    matched_categories.add(mp.category)
+                    break
+
+        has_specialist_for_procedure = False
         for doc in clinic_doctors:
             doc_dict = {
                 "name": doc.name,
                 "title": doc.title,
+                "experience_years": doc.experience_years,
+                "trust_score": doc.trust_score,
+                "hospital_background": getattr(doc, "hospital_background", None),
+                "jsaps_certified": getattr(doc, "jsaps_certified", False) or False,
             }
+            # 情報開示レベルを付与
+            from src.analyzers.doctor_scoring import get_trust_level
+            if doc.trust_score is not None:
+                doc_dict["trust_level"] = get_trust_level(doc.trust_score)
             if doc.board_certifications:
                 try:
                     certs = json.loads(doc.board_certifications)
                     doc_dict["certifications"] = certs
                 except (json.JSONDecodeError, TypeError):
                     doc_dict["certifications"] = []
+            if doc.specialties:
+                try:
+                    specs = json.loads(doc.specialties)
+                    doc_dict["specialties"] = specs
+                except (json.JSONDecodeError, TypeError):
+                    doc_dict["specialties"] = []
+
+            # Phase 14: 医師×施術 専門性マッピング
+            from src.analyzers.doctor_specialty import estimate_doctor_specialties, match_doctor_to_procedure_category
+            doc_specialty = estimate_doctor_specialties(
+                doctor_id=getattr(doc, "id", ""),
+                doctor_name=doc.name or "",
+                certifications=doc_dict.get("certifications", []),
+                specialties=doc_dict.get("specialties", []),
+                jsaps_certified=doc_dict.get("jsaps_certified", False),
+                hospital_background=getattr(doc, "hospital_background", None),
+            )
+            if doc_specialty.matched_categories:
+                doc_dict["specialty_categories"] = list(doc_specialty.matched_categories)
+                doc_dict["specialty_confidence"] = doc_specialty.confidence
+                # マッチした施術カテゴリとの交差判定
+                for cat in matched_categories:
+                    if match_doctor_to_procedure_category(doc_specialty, cat):
+                        has_specialist_for_procedure = True
+                        break
+
             doctor_info.append(doc_dict)
+
+        # 専門医理由を追加
+        if has_specialist_for_procedure:
+            reasons.append("この施術の専門医が在籍")
 
         clinic_matches.append(ClinicMatch(
             clinic_id=clinic.id,
@@ -782,6 +1041,7 @@ async def recommend_clinics(
             website=clinic.website,
             transparency_score=clinic.transparency_score,
             review_summary=review_summary,
+            case_photo_count=clinic_photo_counts.get(clinic.id, 0),
         ))
 
     # === Step 5: ソート & トリミング ===
@@ -892,22 +1152,46 @@ def build_recommendation_context(result: RecommendationResult) -> str:
             proc_names = [p.name for p in match.procedures]
             ctx += f"- 対応施術: {', '.join(proc_names)}\n"
 
+            # Phase 14: 価格相場対比をコンテキストに注入
+            for p in match.procedures:
+                if p.price_display:
+                    ctx += f"  - {p.name}: {p.price_display}\n"
+
         if match.doctors:
-            for doc in match.doctors[:2]:
+            for doc in match.doctors[:3]:
                 cert_text = ""
                 if doc.get("certifications"):
                     cert_text = f"（{', '.join(doc['certifications'][:2])}）"
-                ctx += f"- 医師: {doc.get('title', '')} {doc['name']}{cert_text}\n"
+                exp_text = ""
+                if doc.get("experience_years"):
+                    exp_text = f" / 経験{doc['experience_years']}年"
+                spec_text = ""
+                if doc.get("specialties"):
+                    spec_text = f" / 専門: {', '.join(doc['specialties'][:2])}"
+                bg_text = ""
+                if doc.get("hospital_background"):
+                    bg_text = f" / 経歴: {doc['hospital_background'][:30]}"
+                jsaps_text = ""
+                if doc.get("jsaps_certified"):
+                    jsaps_text = " [JSAPS専門医]"
+                score_text = ""
+                if doc.get("trust_score") and doc["trust_score"] >= 20:
+                    score_text = f" [情報開示{doc['trust_score']:.0f}pt]"
+                ctx += f"- 医師: {doc.get('title', '')} {doc['name']}{cert_text}{exp_text}{spec_text}{bg_text}{jsaps_text}{score_text}\n"
+            # 医師情報が不足している場合の注意書き
+            low_info_docs = [d for d in match.doctors if not d.get("trust_score") or d["trust_score"] < 20]
+            if low_info_docs:
+                ctx += f"- 一部の医師の公開情報が限られています。カウンセリングで資格・経歴を直接確認してください\n"
 
         if match.match_reasons:
             ctx += f"- 選出理由: {' / '.join(match.match_reasons)}\n"
 
         if match.cautions:
-            ctx += f"- ⚠️ 注意点: {' / '.join(match.cautions)}\n"
+            ctx += f"- 注意点: {' / '.join(match.cautions)}\n"
 
         # 透明性スコア
         if match.transparency_score is not None and match.transparency_score >= 30:
-            ctx += f"- AURA透明性スコア: {match.transparency_score:.0f}/100\n"
+            ctx += f"- AURA情報開示スコア: {match.transparency_score:.0f}/100\n"
 
         # 口コミ分析サマリー
         if match.review_summary:
@@ -915,6 +1199,22 @@ def build_recommendation_context(result: RecommendationResult) -> str:
             if aspects:
                 aspect_text = ", ".join(aspects[:3])
                 ctx += f"- 口コミ傾向: {aspect_text}\n"
+
+            # レッドフラグ警告をLLMコンテキストに注入
+            red_flags = match.review_summary.get("red_flags", {})
+            if red_flags:
+                flag_labels = {
+                    "pressure_sales": "圧力販売",
+                    "treatment_trouble": "施術トラブル",
+                    "staff_issue": "スタッフ対応問題",
+                    "billing_issue": "会計トラブル",
+                }
+                flag_parts = [f"{flag_labels.get(k, k)}({v}件)" for k, v in red_flags.items()]
+                ctx += f"- [注意] 口コミ注意情報: {', '.join(flag_parts)}\n"
+
+        # 症例写真件数
+        if match.case_photo_count > 0:
+            ctx += f"- 症例写真: {match.case_photo_count}件\n"
 
         ctx += "\n"
 

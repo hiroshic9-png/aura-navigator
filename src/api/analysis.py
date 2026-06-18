@@ -234,14 +234,27 @@ async def analysis_dashboard(db: AsyncSession = Depends(get_db)):
     分析ダッシュボード
 
     価格乖離 + 透明性 + DB統計の統合ビュー。
+    DBクエリをasyncio.gatherで並列実行しレスポンスを高速化。
     """
-    # クリニック統計
-    total_clinics = await db.scalar(select(func.count(ClinicTable.id)))
+    import asyncio
+
+    # 3つのDBクエリを並列実行
+    clinic_count_coro = db.scalar(select(func.count(ClinicTable.id)))
+    procedures_coro = db.execute(select(ProcedureTable))
+    shibuya_coro = db.execute(
+        select(ClinicTable).where(
+            ClinicTable.city == "渋谷区",
+            ClinicTable.is_active == True,
+        ).limit(50)
+    )
+
+    total_clinics, proc_result, shibuya_result = await asyncio.gather(
+        clinic_count_coro, procedures_coro, shibuya_coro
+    )
+
+    procedures = proc_result.scalars().all()
 
     # 施術の価格乖離集計
-    result = await db.execute(select(ProcedureTable))
-    procedures = result.scalars().all()
-
     gap_analyses = []
     for proc in procedures:
         data = {
@@ -270,13 +283,7 @@ async def analysis_dashboard(db: AsyncSession = Depends(get_db)):
     ]
 
     # 透明性サンプル（渋谷区TOP5）
-    shibuya = await db.execute(
-        select(ClinicTable).where(
-            ClinicTable.city == "渋谷区",
-            ClinicTable.is_active == True,
-        ).limit(50)
-    )
-    shibuya_clinics = shibuya.scalars().all()
+    shibuya_clinics = shibuya_result.scalars().all()
     shibuya_scores = []
     for c in shibuya_clinics:
         data = {
@@ -317,3 +324,4 @@ async def analysis_dashboard(db: AsyncSession = Depends(get_db)):
             ],
         },
     }
+

@@ -26,8 +26,9 @@ from src.advisor.engine import (
     get_or_create_session,
     match_concerns,
 )
-from src.advisor.llm_client import call_llm, is_llm_available, stream_llm
+from src.advisor.llm_client import DEFAULT_MODEL, call_llm, is_llm_available, stream_llm
 from src.db.database import ProcedureTable, ClinicTable, get_db
+from src.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,9 @@ class ChatRequest(BaseModel):
     age_range: str | None = Field(None, description="年代（例: '20代後半'）")
     clinic_id: str | None = Field(None, description="対象クリニックID")
 
+    # Phase 18: ユーザー行動コンテキスト
+    browsing_context: str | None = Field(None, description="ユーザーの閲覧履歴（施術・クリニック・エリア）")
+
 
 class ChatResponse(BaseModel):
     """チャットレスポンス"""
@@ -58,6 +62,7 @@ class ChatResponse(BaseModel):
 
 
 @router.post("/chat")
+@limiter.limit("10/minute")
 async def chat(
     req: ChatRequest,
     request: Request,
@@ -272,6 +277,13 @@ async def chat(
 
     # 6. レスポンス生成
     system_prompt = build_system_prompt(ctx, recommendation_context)
+
+    # Phase 18: ユーザー行動コンテキストをプロンプトに注入（サニタイズ済み）
+    if req.browsing_context:
+        # 長さ制限と制御文字の除去でプロンプトインジェクションを防止
+        safe_context = req.browsing_context[:500].replace('\n', ' ').replace('\r', '')
+        safe_context = ''.join(c for c in safe_context if c.isprintable())
+        system_prompt += f"\n\n[データ]ユーザー閲覧履歴: {safe_context}"
 
     llm_result = await call_llm(
         system_prompt=system_prompt,
@@ -550,6 +562,12 @@ async def _prepare_chat_context(
     # 6. システムプロンプト構築
     system_prompt = build_system_prompt(ctx, recommendation_context)
 
+    # Phase 18: ユーザー行動コンテキストをプロンプトに注入（サニタイズ済み）
+    if req.browsing_context:
+        safe_context = req.browsing_context[:500].replace('\n', ' ').replace('\r', '')
+        safe_context = ''.join(c for c in safe_context if c.isprintable())
+        system_prompt += f"\n\n[データ]ユーザー閲覧履歴: {safe_context}"
+
     return {
         "session": session,
         "session_id": session_id,
@@ -566,8 +584,10 @@ async def _prepare_chat_context(
 
 
 @router.post("/chat/stream")
+@limiter.limit("10/minute")
 async def chat_stream(
     req: ChatRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -798,6 +818,48 @@ async def get_session(session_id: str):
     }
 
 
+@router.get("/sessions")
+async def list_sessions():
+    """
+    過去のセッション一覧
+
+    アクティブなセッション一覧を返却。
+    ユーザーが以前の相談を振り返って継続できる。
+    """
+    from src.advisor.engine import _sessions
+
+    sessions_list = []
+    for sid, session in _sessions.items():
+        if len(session.messages) == 0:
+            continue
+
+        # 最初のユーザーメッセージを要約として使用
+        first_user_msg = ""
+        last_msg_time = session.created_at
+        for msg in session.messages:
+            if msg.get("role") == "user" and not first_user_msg:
+                first_user_msg = msg.get("content", "")[:80]
+            if msg.get("timestamp"):
+                last_msg_time = msg["timestamp"]
+
+        sessions_list.append({
+            "session_id": sid,
+            "created_at": session.created_at,
+            "last_active": last_msg_time,
+            "message_count": len(session.messages),
+            "summary": first_user_msg or "（新しい相談）",
+            "concern": session.context.concern,
+        })
+
+    # 最新順にソート
+    sessions_list.sort(key=lambda x: x.get("last_active", ""), reverse=True)
+
+    return {
+        "sessions": sessions_list,
+        "total": len(sessions_list),
+    }
+
+
 @router.get("/concerns")
 async def list_concerns():
     """対応可能な悩み一覧"""
@@ -847,7 +909,7 @@ async def advisor_status():
     return {
         "llm_available": is_llm_available(),
         "llm_provider": "anthropic" if is_llm_available() else "mock",
-        "model": "claude-sonnet-4-20250514" if is_llm_available() else "template",
+        "model": DEFAULT_MODEL if is_llm_available() else "template",
         "note": "APIキー未設定時はテンプレートベースで回答します。"
                 if not is_llm_available()
                 else "Claude APIに接続中。",

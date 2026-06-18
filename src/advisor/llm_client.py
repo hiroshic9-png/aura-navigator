@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 # Claude APIのモデル設定
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-sonnet-4-6"
 MAX_TOKENS = 4096  # 複雑な比較質問でも回答が途切れないよう拡大
 TEMPERATURE = 0.4  # 医療情報は正確性重視で低めに設定
 

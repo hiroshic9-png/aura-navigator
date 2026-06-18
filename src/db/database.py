@@ -96,6 +96,9 @@ class ClinicTable(Base):
 
     # AURA分析データ（Layer C）
     transparency_score = Column(Float)
+    clinic_score = Column(Float)  # 総合スコア（0-100）
+    clinic_grade = Column(String(2))  # グレード（A/B/C/D/E）
+    clinic_score_breakdown = Column(Text)  # JSON: 各軸のスコア内訳
     price_level = Column(String(20))
     procedures_offered = Column(Text)  # JSON配列
     specialties = Column(Text)  # JSON配列
@@ -115,6 +118,7 @@ class ClinicTable(Base):
     # リレーション
     doctors = relationship("DoctorTable", back_populates="clinic", cascade="all, delete-orphan")
     reviews = relationship("ReviewTable", back_populates="clinic", cascade="all, delete-orphan")
+    case_photos = relationship("CasePhotoTable", back_populates="clinic", cascade="all, delete-orphan")
     clinic_procedures = relationship("ClinicProcedure", backref="clinic", cascade="all, delete-orphan")
 
     def to_dict(self) -> dict:
@@ -158,14 +162,94 @@ class DoctorTable(Base):
     board_certifications = Column(Text)  # JSON配列
     experience_years = Column(Integer)
     profile_url = Column(String(500))
+    photo_url = Column(String(500))  # 医師プロフィール写真URL
+
+    # SNSアカウント（v4: Phase 4で追加）
+    instagram_url = Column(String(500))
+    twitter_url = Column(String(500))
+    tiktok_url = Column(String(500))
+    youtube_url = Column(String(500))
+
+    # 信頼性スコア（doctor_scoring.pyで算出）
+    trust_score = Column(Float)  # 総合スコア（0-100）
+    trust_score_breakdown = Column(Text)  # JSON: 各軸のスコア内訳
+    hospital_background = Column(Text)  # 勤務経歴（大学病院・基幹病院等）
+    annual_case_count = Column(Integer)  # 年間症例数（公開データがある場合）
+    jsaps_certified = Column(Boolean, default=False)  # JSAPS専門医資格
 
     # データ来歴
     source = Column(String(20), default="manual")
     fetched_at = Column(DateTime, default=datetime.now)
     created_at = Column(DateTime, default=datetime.now)
+    is_active = Column(Boolean, default=True)  # 無効化された医師データ（ゴミデータ等）
 
     # リレーション
     clinic = relationship("ClinicTable", back_populates="doctors")
+    case_photos = relationship("CasePhotoTable", back_populates="doctor")
+
+
+# ==========================================
+# 症例写真
+# ==========================================
+
+class CasePhotoTable(Base):
+    """
+    症例写真テーブル
+
+    各クリニック・医師の施術Before/After写真を管理。
+    beauty-search スクレイパーで収集したデータを格納する。
+    """
+
+    __tablename__ = "case_photos"
+    __table_args__ = (
+        Index("ix_case_photos_clinic", "clinic_id"),
+        Index("ix_case_photos_doctor", "doctor_id"),
+        Index("ix_case_photos_category", "category"),
+        Index("ix_case_photos_source", "source"),
+        Index("ix_case_photos_source_id", "source_case_id"),
+    )
+
+    id = Column(String(26), primary_key=True)  # ULID
+    clinic_id = Column(
+        String(26),
+        ForeignKey("clinics.id", ondelete="SET NULL"),
+        index=True,
+    )
+    doctor_id = Column(
+        String(26),
+        ForeignKey("doctors.id", ondelete="SET NULL"),
+        index=True,
+    )
+    procedure_id = Column(
+        String(26),
+        ForeignKey("procedures.id", ondelete="SET NULL"),
+        index=True,
+    )
+
+    # 症例写真データ
+    category = Column(String(20), nullable=False)  # eyes/nose/skin/jawline/body/other
+    procedure_name = Column(String(200))  # 施術名
+    before_image_url = Column(String(500))  # ビフォー画像URL
+    after_image_url = Column(String(500))  # アフター画像URL
+    source_url = Column(String(500))  # 症例詳細ページURL
+    description = Column(Text)  # 症例説明・コメント
+    price = Column(String(100))  # 施術価格（表示用文字列）
+
+    # メタデータ
+    doctor_name = Column(String(100))  # 担当医師名（名寄せ前の生データ）
+    clinic_name = Column(String(200))  # クリニック名（名寄せ前の生データ）
+    source_case_id = Column(String(100))  # 元サイトの症例ID
+
+    # データ来歴（Provenance）
+    source = Column(String(20), nullable=False)  # sbc/tcb/shinagawa/tribeau
+    fetched_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.now)
+    is_active = Column(Boolean, default=True)
+
+    # リレーション
+    clinic = relationship("ClinicTable", back_populates="case_photos")
+    doctor = relationship("DoctorTable", back_populates="case_photos")
+    procedure = relationship("ProcedureTable", back_populates="case_photos")
 
 
 # ==========================================
@@ -204,9 +288,15 @@ class ReviewTable(Base):
     created_at = Column(DateTime)
     analyzed_at = Column(DateTime)
 
+    # Phase 12: 口コミ分析深化
+    doctor_id = Column(String(26), ForeignKey("doctors.id", ondelete="SET NULL"), index=True)
+    red_flags = Column(Text)  # JSON: レッドフラグカテゴリ配列
+    quality_score = Column(Float)  # 口コミ品質スコア 0-100
+
     # リレーション
     clinic = relationship("ClinicTable", back_populates="reviews")
     procedure = relationship("ProcedureTable", back_populates="reviews")
+    doctor = relationship("DoctorTable", backref="reviews")
 
 
 # ==========================================
@@ -254,6 +344,7 @@ class ProcedureTable(Base):
     suitable_for = Column(Text)  # JSON配列
     not_suitable_for = Column(Text)  # JSON配列
     counseling_questions = Column(Text)  # JSON配列
+    satisfaction = Column(Text)  # JSON: 満足度・後悔データ
 
     # データ品質管理
     evidence_level = Column(String(30), default="unverified")  # guideline / cross_checked / single_source / unverified
@@ -273,6 +364,7 @@ class ProcedureTable(Base):
     # リレーション
     reviews = relationship("ReviewTable", back_populates="procedure")
     clinic_procedures = relationship("ClinicProcedure", backref="procedure", cascade="all, delete-orphan")
+    case_photos = relationship("CasePhotoTable", back_populates="procedure")
 
 
 

@@ -173,6 +173,76 @@ MIN_TEXT_LENGTH = 10
 
 
 # ============================================================
+# レッドフラグパターン（Phase 12）
+# ============================================================
+
+RED_FLAG_PATTERNS: dict[str, list[str]] = {
+    "pressure_sales": [
+        r"即日契約",
+        r"その場で決め",
+        r"断れなかった",
+        r"断れない",
+        r"勧められた",
+        r"押し売り",
+        r"強引",
+        r"契約させ",
+        r"無理やり",
+        r"断りにくい",
+        r"今日中に",
+        r"今決めないと",
+        r"キャンペーン.*今日だけ",
+        r"ローン.*勧め",
+        r"クレジット.*勧め",
+    ],
+    "treatment_trouble": [
+        r"失敗",
+        r"後遺症",
+        r"修正手術",
+        r"やり直し",
+        r"訴訟",
+        r"差が出",
+        r"左右差.*ひど",
+        r"感染",
+        r"化膿",
+        r"壊死",
+        r"神経.*損傷",
+        r"殺され",
+    ],
+    "staff_issue": [
+        r"態度が悪い",
+        r"横柄",
+        r"説明がない",
+        r"説明もなく",
+        r"質問できない",
+        r"質問.*嫌が",
+        r"たらい回し",
+        r"人間性を疑う",
+        r"話を聞いてくれない",
+        r"カウンセラー.*任せ",
+    ],
+    "billing_issue": [
+        r"追加料金",
+        r"聞いてない.*料金",
+        r"料金.*聞いてない",
+        r"高すぎ",
+        r"ぼったくり",
+        r"見積もり.*違う",
+        r"請求.*違う",
+        r"事前の説明と違う",
+        r"返金.*拦否",
+        r"返金.*しない",
+    ],
+}
+
+RED_FLAG_SEVERITY: dict[str, str] = {
+    "pressure_sales": "warning",
+    "treatment_trouble": "warning",
+    "staff_issue": "caution",
+    "billing_issue": "warning",
+}
+
+
+# ============================================================
 # 分析結果データクラス
 # ============================================================
 
@@ -189,6 +259,10 @@ class ReviewAnalysisResult:
     negative_count: int = 0
     matched_positive: list[str] = field(default_factory=list)
     matched_negative: list[str] = field(default_factory=list)
+    # Phase 12: 口コミ分析深化
+    red_flags: list[dict] = field(default_factory=list)
+    quality_score: float = 0.0
+    matched_doctor_id: str | None = None
 
 
 @dataclass
@@ -214,18 +288,26 @@ class AnalysisStats:
 
 class ReviewAnalyzer:
     """
-    口コミ感情分析エンジン
+    口コミ分析エンジン
 
     キーワードマッチングベースで口コミテキストの感情スコア、
-    アスペクト分類、スパム判定を実行する。
+    アスペクト分類、スパム判定、レッドフラグ検出、品質スコアを実行する。
     """
 
     def __init__(self):
         """分析エンジンの初期化"""
         # テンプレパターンを事前コンパイル
         self._spam_patterns = [re.compile(p) for p in SPAM_TEMPLATE_PATTERNS]
+        # レッドフラグパターンを事前コンパイル
+        self._red_flag_patterns = {
+            cat: [re.compile(p) for p in patterns]
+            for cat, patterns in RED_FLAG_PATTERNS.items()
+        }
 
-    def analyze(self, review_id: str, text: str, rating: float | None = None) -> ReviewAnalysisResult:
+    def analyze(
+        self, review_id: str, text: str, rating: float | None = None,
+        clinic_doctors: list | None = None, created_at: datetime | None = None,
+    ) -> ReviewAnalysisResult:
         """
         口コミ1件を分析する
 
@@ -233,6 +315,8 @@ class ReviewAnalyzer:
             review_id: 口コミID
             text: 口コミ本文
             rating: 口コミ評価（1-5、あれば）
+            clinic_doctors: クリニックに所属する医師のリスト（名前マッチング用）
+            created_at: 口コミの投稿日時（品質スコア算出用）
 
         Returns:
             ReviewAnalysisResult: 分析結果
@@ -248,6 +332,17 @@ class ReviewAnalyzer:
         # アスペクト抽出
         aspects = self._extract_aspects(text)
 
+        # レッドフラグ検出
+        red_flags = self._detect_red_flags(text)
+
+        # 品質スコア算出
+        quality_score = self._score_quality(text, rating, aspects, created_at)
+
+        # 医師マッピング
+        matched_doctor_id = None
+        if clinic_doctors:
+            matched_doctor_id = self._match_doctor(text, clinic_doctors)
+
         return ReviewAnalysisResult(
             review_id=review_id,
             sentiment_score=sentiment_score,
@@ -257,6 +352,9 @@ class ReviewAnalyzer:
             negative_count=neg_count,
             matched_positive=matched_pos,
             matched_negative=matched_neg,
+            red_flags=red_flags,
+            quality_score=quality_score,
+            matched_doctor_id=matched_doctor_id,
         )
 
     def _calculate_sentiment(
@@ -267,12 +365,6 @@ class ReviewAnalyzer:
 
         計算式: (ポジ数 - ネガ数) / (ポジ数 + ネガ数 + 1)
         スコア範囲: -1.0 〜 +1.0
-
-        Args:
-            text: 口コミ本文
-
-        Returns:
-            (スコア, ポジ数, ネガ数, マッチしたポジキーワード, マッチしたネガキーワード)
         """
         matched_positive = []
         matched_negative = []
@@ -291,7 +383,7 @@ class ReviewAnalyzer:
         # スコア計算: (ポジ数 - ネガ数) / (ポジ数 + ネガ数 + 1)
         score = (pos_count - neg_count) / (pos_count + neg_count + 1)
 
-        # -1.0〜+1.0 にクランプ（理論的には範囲内だが安全のため）
+        # -1.0〜+1.0 にクランプ
         score = max(-1.0, min(1.0, score))
 
         return score, pos_count, neg_count, matched_positive, matched_negative
@@ -301,15 +393,6 @@ class ReviewAnalyzer:
         アスペクト（評価軸）を抽出する
 
         5軸: service, price, skill, wait, facility
-        各軸でポジティブ/ネガティブキーワードの出現を確認し、
-        優勢な方向性を判定する。
-
-        Args:
-            text: 口コミ本文
-
-        Returns:
-            検出されたアスペクトと方向性の辞書
-            例: {"service": "positive", "price": "negative"}
         """
         aspects: dict[str, str] = {}
 
@@ -317,7 +400,6 @@ class ReviewAnalyzer:
             pos_hits = sum(1 for kw in keywords["positive"] if kw in text)
             neg_hits = sum(1 for kw in keywords["negative"] if kw in text)
 
-            # いずれかのキーワードがヒットした場合のみアスペクトを記録
             if pos_hits > 0 or neg_hits > 0:
                 if pos_hits >= neg_hits:
                     aspects[aspect_name] = "positive"
@@ -329,34 +411,173 @@ class ReviewAnalyzer:
     def _detect_spam(self, text: str, rating: float | None = None) -> bool:
         """
         スパム（低品質口コミ）を判定する
-
-        以下のいずれかに該当する場合にスパムと判定:
-        1. テキストが10文字未満
-        2. テンプレ的な定型口コミ（情報量が極端に少ない）
-        3. 評価なしでテキストなし（空データ）
-
-        Args:
-            text: 口コミ本文
-            rating: 口コミ評価（1-5、あれば）
-
-        Returns:
-            スパム判定結果
         """
-        # テキストが空 or 極端に短い
         stripped = text.strip() if text else ""
         if len(stripped) < MIN_TEXT_LENGTH:
             return True
 
-        # 評価なしでテキストなし
         if not stripped and rating is None:
             return True
 
-        # テンプレ口コミ判定
         for pattern in self._spam_patterns:
             if pattern.match(stripped):
                 return True
 
         return False
+
+    # ============================================================
+    # Phase 12: レッドフラグ検出
+    # ============================================================
+
+    def _detect_red_flags(self, text: str) -> list[dict]:
+        """
+        口コミテキストからレッドフラグ（危険サイン）を検出する
+
+        4カテゴリ:
+        - pressure_sales: 圧力販売・強引な勧誘
+        - treatment_trouble: 施術トラブル・失敗
+        - staff_issue: スタッフ対応の問題
+        - billing_issue: 不透明な会計・追加料金
+
+        Returns:
+            検出されたレッドフラグのリスト
+            例: [{"category": "pressure_sales", "severity": "warning", "matched": "即日契約"}]
+        """
+        flags = []
+        for category, patterns in self._red_flag_patterns.items():
+            for pattern in patterns:
+                match = pattern.search(text)
+                if match:
+                    severity = RED_FLAG_SEVERITY.get(category, "caution")
+                    flags.append({
+                        "category": category,
+                        "severity": severity,
+                        "matched": match.group(),
+                    })
+                    break  # 同カテゴリは最初の1件のみ
+        return flags
+
+    # ============================================================
+    # Phase 12: 品質スコア
+    # ============================================================
+
+    def _score_quality(
+        self, text: str, rating: float | None,
+        aspects: dict, created_at: datetime | None,
+    ) -> float:
+        """
+        口コミの品質（信頼度）スコアを0-100で算出する
+
+        5軸で評価:
+        1. テキスト長（0-30pt）: 具体性の指標
+        2. アスペクト検出数（0-20pt）: 多面的レビューほど高品質
+        3. レーティング整合性（0-20pt）: テキストとスコアの一致
+        4. 具体性キーワード（0-15pt）: 固有名詞・日付・金額の言及
+        5. 日付の新しさ（0-15pt）: 最近のレビューほど有用
+        """
+        score = 0.0
+        stripped = text.strip() if text else ""
+        text_len = len(stripped)
+
+        # 1. テキスト長 (0-30pt)
+        if text_len >= 200:
+            score += 30
+        elif text_len >= 100:
+            score += 22
+        elif text_len >= 50:
+            score += 15
+        elif text_len >= 20:
+            score += 8
+        else:
+            score += 2
+
+        # 2. アスペクト検出数 (0-20pt)
+        aspect_count = len(aspects)
+        score += min(aspect_count * 5, 20)
+
+        # 3. レーティング整合性 (0-20pt)
+        if rating is not None:
+            sentiment, _, _, _, _ = self._calculate_sentiment(stripped)
+            # テキストとレーティングが整合していれば高スコア
+            if (rating >= 4 and sentiment > 0) or (rating <= 2 and sentiment < 0):
+                score += 20
+            elif (rating >= 4 and sentiment >= -0.1) or (rating <= 2 and sentiment <= 0.1):
+                score += 12
+            elif 2 < rating < 4:
+                score += 15  # 中間評価は整合しやすい
+            else:
+                # テキストとレーティングが逆: サクラの可能性
+                score += 5
+
+        # 4. 具体性キーワード (0-15pt)
+        specificity = 0
+        # 金額言及
+        if re.search(r'[\d,]+円|万円|\d+万', stripped):
+            specificity += 5
+        # 日付言及
+        if re.search(r'\d+月|\d+年|\d+日|先月|先週|昨年|去年', stripped):
+            specificity += 5
+        # 施術名言及
+        if re.search(r'ボトックス|ヒアルロン|二重|埋没|切開|脂肪吸引|豊胸|脱毛|レーザー|ピーリング|リフト', stripped):
+            specificity += 5
+        score += min(specificity, 15)
+
+        # 5. 日付の新しさ (0-15pt)
+        if created_at:
+            # timezone-aware/naive混在に対応
+            now = datetime.now()
+            ca = created_at.replace(tzinfo=None) if created_at.tzinfo else created_at
+            age_days = (now - ca).days
+            if age_days <= 90:
+                score += 15
+            elif age_days <= 180:
+                score += 12
+            elif age_days <= 365:
+                score += 8
+            elif age_days <= 730:
+                score += 4
+            else:
+                score += 1
+
+        return min(score, 100.0)
+
+    # ============================================================
+    # Phase 12: 医師マッピング
+    # ============================================================
+
+    def _match_doctor(self, text: str, clinic_doctors: list) -> str | None:
+        """
+        口コミテキストから医師名を検出し、doctor_idを返す
+
+        検出パターン:
+        - 「○○先生」「○○医師」「○○ドクター」「○○Dr」
+        - 姓のみでもマッチ（2文字以上の姓）
+
+        Args:
+            text: 口コミテキスト
+            clinic_doctors: 医師レコードのリスト（.id, .name を持つ）
+
+        Returns:
+            マッチした医師のID。マッチなしはNone
+        """
+        for doc in clinic_doctors:
+            name = doc.name
+            if not name:
+                continue
+
+            # フルネーム（スペース除去）でマッチ
+            full_name = name.replace(" ", "").replace("　", "")
+            if len(full_name) >= 2 and full_name in text:
+                return doc.id
+
+            # 姓のみ（2文字以上）+ 敬称パターン
+            surname = name.split()[0] if " " in name else name.split("　")[0] if "　" in name else None
+            if surname and len(surname) >= 2:
+                for suffix in ["先生", "医師", "ドクター", "Dr", "dr"]:
+                    if f"{surname}{suffix}" in text:
+                        return doc.id
+
+        return None
 
 
 # ============================================================

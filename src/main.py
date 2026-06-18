@@ -4,7 +4,9 @@ AURA MVP — FastAPIメインアプリケーション
 美容医療の患者に、初めての味方を。
 """
 
+import asyncio
 import logging
+import sys
 import time
 import traceback
 from contextlib import asynccontextmanager
@@ -14,10 +16,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 
 from src.config import settings
 from src.db.database import init_db
@@ -36,16 +38,39 @@ async def lifespan(app: FastAPI):
     logger.info(f"AURA MVP v{settings.app_version} を起動中...")
     await init_db()
     logger.info("DB初期化完了")
+
+    # セッションクリーンアップのバックグラウンドタスク
+    cleanup_task = asyncio.create_task(_periodic_session_cleanup())
+
     yield
+
+    # シャットダウン時にクリーンアップタスクを停止
+    cleanup_task.cancel()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        pass
     logger.info("AURA MVP シャットダウン")
+
+
+async def _periodic_session_cleanup():
+    """古いセッションを1時間ごとにクリーンアップ"""
+    from src.advisor.engine import cleanup_old_sessions
+    while True:
+        await asyncio.sleep(3600)  # 1時間ごと
+        try:
+            cleanup_old_sessions(max_age_hours=24)
+            logger.info("セッションクリーンアップ完了")
+        except Exception as e:
+            logger.warning(f"セッションクリーンアップエラー: {e}")
 
 
 # 本番環境ではSwagger UIを非表示
 docs_url = "/docs" if settings.debug else None
 redoc_url = "/redoc" if settings.debug else None
 
-# レート制限設定
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+# レート制限設定（共有インスタンスを使用）
+from src.rate_limit import limiter
 
 app = FastAPI(
     title=settings.app_name,
@@ -108,13 +133,29 @@ async def validation_error_handler(request: Request, exc):
 
 # セキュリティヘッダーミドルウェア
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """レスポンスにセキュリティヘッダーを追加"""
+    """レスポンスにセキュリティヘッダーとキャッシュ制御を追加"""
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+
+        # 静的アセットのキャッシュ制御
+        path = request.url.path
+        if path.startswith("/static/css/") or path.startswith("/static/js/"):
+            # CSS/JS: 1時間キャッシュ + 再検証
+            response.headers["Cache-Control"] = "public, max-age=3600, must-revalidate"
+        elif path.startswith("/static/icons/"):
+            # アイコン: 1週間キャッシュ
+            response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+        elif path.startswith("/static/"):
+            # その他の静的ファイル: 10分
+            response.headers["Cache-Control"] = "public, max-age=600"
+        elif path.startswith("/api/"):
+            # API: キャッシュなし
+            response.headers["Cache-Control"] = "no-store"
+
         return response
 
 
@@ -159,6 +200,8 @@ class AdminApiProtectionMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+# GZip圧縮（500バイト以上のレスポンスを圧縮）
+app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AdminApiProtectionMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
@@ -175,7 +218,7 @@ app.add_middleware(
         "http://localhost:8400",
         "http://127.0.0.1:8400",
         "https://aura-navi.vercel.app",
-        "https://*.onrender.com",
+        "https://aura-mvp.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -220,6 +263,11 @@ async def health(request: Request):
         "provider": settings.default_llm,
     }
 
+    health_status["environment"] = {
+        "python": sys.version.split()[0],
+        "debug": settings.debug,
+    }
+
     return health_status
 
 
@@ -246,18 +294,28 @@ async def stats():
 
 # APIルーター
 from src.api.clinics import router as clinics_router
+from src.api.doctors import router as doctors_router
 from src.api.procedures import router as procedures_router
+from src.api.timeline import router as timeline_router
 from src.api.analysis import router as analysis_router
 from src.api.advisor import router as advisor_router
 from src.api.db_admin import router as db_admin_router
 from src.api.favorites import router as favorites_router
+from src.api.nearby import router as nearby_router
+from src.api.notifications import router as notifications_router
+from src.api.case_photos import router as case_photos_router
 
+app.include_router(nearby_router, prefix="/api/clinics", tags=["clinics"])
 app.include_router(clinics_router, prefix="/api/clinics", tags=["clinics"])
+app.include_router(doctors_router, prefix="/api/doctors", tags=["doctors"])
+app.include_router(timeline_router, prefix="/api/procedures", tags=["procedures"])
 app.include_router(procedures_router, prefix="/api/procedures", tags=["procedures"])
 app.include_router(analysis_router, prefix="/api/analysis", tags=["analysis"])
 app.include_router(advisor_router, prefix="/api/advisor", tags=["advisor"])
 app.include_router(db_admin_router, prefix="/api/db", tags=["db-admin"])
 app.include_router(favorites_router, prefix="/api", tags=["favorites"])
+app.include_router(notifications_router, prefix="/api", tags=["notifications"])
+app.include_router(case_photos_router, prefix="/api/case-photos", tags=["case-photos"])
 
 
 # 静的ファイル配信（フロントエンド）
@@ -267,7 +325,20 @@ if STATIC_DIR.exists():
 
 
 # SPAルーティング対応 — フロントエンドのルートを全てindex.htmlにフォールバック
-SPA_ROUTES = ["/", "/procedures", "/clinics", "/advisor"]
+SPA_ROUTES = ["/", "/procedures", "/clinics", "/doctors", "/advisor"]
+
+
+@app.get("/sw.js")
+async def serve_service_worker():
+    """ルートパスでService Workerを配信（スコープ確保）"""
+    sw_path = STATIC_DIR / "sw.js"
+    if sw_path.exists():
+        return FileResponse(
+            str(sw_path),
+            media_type="application/javascript",
+            headers={"Service-Worker-Allowed": "/"}
+        )
+    return JSONResponse(status_code=404, content={"error": "sw.js not found"})
 
 
 @app.get("/")
@@ -281,12 +352,32 @@ async def serve_root():
 
 @app.get("/procedures")
 @app.get("/clinics")
+@app.get("/doctors")
 @app.get("/advisor")
 @app.get("/favorites")
 async def serve_spa_route():
     """SPA用ルート — ブラウザの戻る/進むボタンに対応
 
     /procedures, /clinics, /advisor へのGETリクエストでも
+    index.htmlを返し、フロントエンドのJSがルーティングを処理する。
+    """
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path), media_type="text/html")
+    return {"name": settings.app_name, "version": settings.app_version}
+
+
+@app.get("/clinics/{clinic_id}")
+@app.get("/procedures/{procedure_id}")
+@app.get("/doctors/{doctor_id}")
+async def serve_spa_detail_route(
+    clinic_id: str = None,
+    procedure_id: str = None,
+    doctor_id: str = None,
+):
+    """SPA詳細ページ用ルート — 個別リソースのDeep Linkingに対応
+
+    /clinics/{id}, /procedures/{id}, /doctors/{id} へのGETリクエストでも
     index.htmlを返し、フロントエンドのJSがルーティングを処理する。
     """
     index_path = STATIC_DIR / "index.html"

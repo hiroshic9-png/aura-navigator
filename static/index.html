@@ -3,46 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA — 美容医療、受ける前に知っておきたいこと</title>
-    <meta name="description" content="美容医療の広告ではわからない、本当の値段・リスク・聞くべき質問。厚労省認可1,358施設のデータで、カウンセリング前の準備に。">
-    <meta name="keywords" content="美容医療,クリニック,二重,脂肪吸引,ヒアルロン酸,ボトックス,口コミ,費用,リスク">
-    <meta name="theme-color" content="#6b5b73">
+    <title>AURA — 美容整形の値段・リスク・口コミを徹底比較｜後悔しないクリニック選び</title>
+    <meta name="description" content="美容整形の広告価格と実際の費用のギャップ、施術ごとのリスク、1,358施設の口コミ評価を徹底比較。カウンセリング前に知っておくべき情報を、広告費ゼロの中立な立場でお届けします。">
+    <meta name="keywords" content="美容整形 後悔,美容クリニック 選び方,二重 費用 実際,美容医療 失敗,脂肪吸引 リスク,ヒアルロン酸 値段,ボトックス 相場,カウンセリング 断り方,見積もり 高い 美容,美容外科 口コミ 比較">
+    <link rel="canonical" href="https://aura-mvp.onrender.com/">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#2C2C2E">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg">
 
     <!-- OGP（ソーシャルシェア用） -->
-    <meta property="og:title" content="AURA — 美容医療、受ける前に知っておきたいこと">
-    <meta property="og:description" content="広告の値段と実際の値段。クリニックが教えてくれないリスク。カウンセリングで聞くべき質問。">
+    <meta property="og:title" content="AURA — 美容整形の値段・リスク・口コミを徹底比較">
+    <meta property="og:description" content="広告の値段と実際の費用は2〜5倍違うことも。1,358施設の口コミ・専門医資格・価格透明性を客観データで比較。クリニックから広告費を一切もらわない中立な情報サービス。">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aura-mvp.onrender.com/">
     <meta property="og:locale" content="ja_JP">
+    <meta property="og:site_name" content="AURA">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="AURA — 美容医療、受ける前に知っておきたいこと">
-    <meta name="twitter:description" content="厚労省認可1,358施設の本当のデータで、美容医療の不透明さに光を。">
+    <meta name="twitter:title" content="AURA — 美容整形の本当の値段・リスクをデータで見る">
+    <meta name="twitter:description" content="広告と実際の値段のギャップ、後悔率、カウンセリングで聞くべき質問。1,358施設のデータで美容医療の不透明さに光を。">
 
     <!-- ファビコン（SVGインライン） -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Serif+JP:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- JSON-LD構造化データ（SEO） -->
+    <!-- JSON-LD 構造化データ: WebApplication -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AURA",
+        "description": "美容整形の広告価格と実際の費用のギャップ、施術ごとのリスク、1,358施設の口コミ評価を徹底比較。",
+        "url": "https://aura-mvp.onrender.com",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "JPY"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "AURA"
+        },
+        "inLanguage": "ja"
+    }
+    </script>
+    <!-- JSON-LD 構造化データ: FAQPage（検索結果にFAQ表示） -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "美容整形の広告価格と実際の費用はどのくらい違う？",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "施術によって異なりますが、広告に表示される最低価格と実際にカウンセリングで提示される金額は2〜5倍差がある場合があります。例えば二重埋没法は広告では4,800円〜と表示されますが、実際の相場は7万〜15万円です。"
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "美容クリニックのカウンセリングで契約を迫られたらどうすればいい？",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "カウンセリングはあくまで相談の場であり、その場で契約する必要はありません。『持ち帰って検討します』と伝えましょう。特定商取引法により、美容医療のカウンセリング契約にはクーリングオフ（8日間）が適用されます。"
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "美容整形で後悔しないためにはどうすればいい？",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "複数のクリニックでカウンセリングを受けること、広告価格ではなく実際の費用を確認すること、医師の専門医資格や経験年数を調べること、口コミは量だけでなく内容を確認することが重要です。AURAでは1,358施設の客観データをもとに比較できます。"
+                }
+            }
+        ]
+    }
+    </script>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">メインコンテンツへスキップ</a>
 
     <header id="site-header">
         <a href="#" class="header-logo" onclick="navigate('home');return false;">AURA</a>
-        <nav class="header-nav">
+        <nav class="header-nav" aria-label="メインナビゲーション">
             <a href="#" class="nav-link active" data-page="home" id="nav-home">ホーム</a>
             <a href="#" class="nav-link" data-page="procedures" id="nav-procedures">施術を調べる</a>
             <a href="#" class="nav-link" data-page="clinics" id="nav-clinics">クリニックを探す</a>
+            <a href="#" class="nav-link" data-page="doctors" id="nav-doctors">ドクターを探す</a>
+            <a href="#" class="nav-link" data-page="case-photos" id="nav-case-photos">症例写真</a>
+            <a href="#" class="nav-link" data-page="favorites" id="nav-favorites">お気に入り</a>
             <a href="#" class="nav-link nav-link--accent" data-page="advisor" id="nav-advisor">相談する</a>
         </nav>
+        <div class="header-actions">
+            <button id="global-search-toggle" class="global-search-toggle" aria-label="検索" title="横断検索">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+            </button>
+            <button id="theme-toggle" class="theme-toggle" aria-label="テーマ切替" title="ライト/ダークモード切替">
+                <svg class="theme-icon theme-icon--light" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="m12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+                <svg class="theme-icon theme-icon--dark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="global-search-bar" id="global-search-bar" style="display:none;">
+            <input type="text" id="global-search-input" class="global-search-input" placeholder="施術・クリニック・医師を検索..." autocomplete="off" aria-label="横断検索">
+            <div class="global-search-results" id="global-search-results"></div>
+        </div>
     </header>
 
-    <main>
+    <main id="main-content">
         <!-- ホーム -->
         <section id="page-home" class="page active">
+            <div id="notification-banner" class="notification-banner" style="display:none;"></div>
             <div class="hero">
-                <h1 class="hero-title">美容医療、<br>受ける前に<br>知っておきたいこと。</h1>
-                <p class="hero-lead">広告の値段と、実際に請求される金額。<br>クリニックが教えてくれないリスクと、カウンセリングで聞くべき質問。<br>AURAは、あなたが納得して決めるための情報をまとめています。</p>
+                <div class="hero-visual">
+                    <img src="/static/images/hero_bg.png" alt="" class="hero-bg-image" loading="eager">
+                </div>
+                <div class="hero-content">
+                    <h1 class="hero-title">美容整形、<br>後悔しない選び方をデータで。</h1>
+                    <p class="hero-lead">広告の値段と実際の費用。専門医の資格と経験。<br>1,358施設の客観データで、あなたに合うクリニックが見つかる。</p>
+                    <div class="hero-cta-group">
+                        <button class="hero-cta hero-cta--primary" onclick="navigate('procedures')">施術から探す</button>
+                        <button class="hero-cta hero-cta--secondary" onclick="navigate('clinics')">人気のクリニックを見る</button>
+                    </div>
+                    <div class="hero-trust-badges">
+                        <span class="trust-badge">厚生労働省データベース全件収録</span>
+                        <span class="trust-badge">広告費ゼロの中立評価</span>
+                    </div>
+                </div>
                 <div class="hero-stats">
                     <div class="hero-stat">
                         <span class="hero-stat-number" data-count="0">0</span>
@@ -58,6 +166,70 @@
                     </div>
                 </div>
             </div>
+
+            <section class="popular-procedures fade-in-section">
+                <h2 class="section-heading">人気の施術</h2>
+                <div class="popular-cards" id="popular-procedure-cards">
+                    <!-- JSで動的生成 -->
+                </div>
+            </section>
+
+            <section class="beginner-guide fade-in-section">
+                <h2 class="section-heading">美容医療が初めての方へ</h2>
+                <div class="guide-cards">
+                    <div class="guide-card">
+                        <div class="guide-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                            </svg>
+                        </div>
+                        <h3>広告の価格と実際の価格は違います</h3>
+                        <p>「二重 4,800円〜」の広告を見たことがありませんか？実際には7万〜15万円が相場です。</p>
+                    </div>
+                    <div class="guide-card">
+                        <div class="guide-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <h3>カウンセリングは「決める場」ではなく「聞く場」</h3>
+                        <p>その場で契約する必要はありません。「持ち帰って検討します」が正常です。</p>
+                    </div>
+                    <div class="guide-card">
+                        <div class="guide-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                        </div>
+                        <h3>「今日だけ割引」は圧力販売のサイン</h3>
+                        <p>急かすクリニックは避けましょう。美容整形のクーリングオフは8日間可能です。</p>
+                    </div>
+                    <div class="guide-card">
+                        <div class="guide-card-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                        </div>
+                        <h3>情報は複数ソースで確認</h3>
+                        <p>口コミサイト、公式HP、カウンセリング。一つの情報源だけで決めないこと。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="trouble-section fade-in-section">
+                <h2 class="section-heading">知っておきたい美容医療の現実</h2>
+                <p class="trouble-subtitle">国民生活センターへの相談が4年で約4.8倍に急増しています</p>
+                <div class="trouble-chart" id="trouble-chart">
+                    <!-- JSで動的生成: バーチャート -->
+                </div>
+                <div class="trouble-cases" id="trouble-cases">
+                    <!-- JSで動的生成: 事例カード -->
+                </div>
+                <p class="trouble-source">出典: 国民生活センター PIO-NETデータ</p>
+            </section>
 
             <div class="concern-section fade-in-section">
                 <h2 class="section-heading">気になるのは、どこですか？</h2>
@@ -127,12 +299,38 @@
                 <div id="price-truth-list"></div>
             </div>
 
+            <div class="market-prices-home fade-in-section">
+                <h2 class="section-heading">東京エリア 施術相場</h2>
+                <p class="section-desc">1,358クリニックの実データから算出した、施術別の中央値です。</p>
+                <div id="market-prices-home-list"></div>
+            </div>
+
+            <div class="area-dashboard-section fade-in-section">
+                <h2 class="section-heading">エリア別クリニック分析</h2>
+                <p class="section-desc">東京都内のエリアごとに、クリニック数・Google評価・専門医数を比較できます。</p>
+                <div id="area-dashboard" class="area-dashboard-grid"></div>
+            </div>
+
+            <div class="top-clinics-section fade-in-section">
+                <h2 class="section-heading">信頼度の高いクリニック</h2>
+                <p class="section-desc">客観データ（情報公開・口コミ評価・医師品質）に基づく、AURAグレードA評価のクリニックです。</p>
+                <div id="top-clinics-home" class="top-clinics-grid"></div>
+                <div class="section-more">
+                    <button class="section-more-btn" onclick="navigate('clinics')">すべてのクリニックを見る →</button>
+                </div>
+            </div>
+
+            <div class="review-trends-section fade-in-section">
+                <h2 class="section-heading">口コミ傾向レポート</h2>
+                <p class="section-desc">5,000件以上の口コミを分析。患者が本当に重視しているポイントをデータで可視化します。</p>
+                <div id="review-trends-home" class="review-trends-grid"></div>
+            </div>
+
             <div class="tools-section fade-in-section">
                 <h2 class="section-heading">あなたの権利を守るツール</h2>
                 <p class="section-desc">美容医療の患者には法律で守られた権利があります。<br>テンプレートとチェックリストで、行動を起こすお手伝いをします。</p>
                 <div class="tools-grid" id="tools-grid"></div>
             </div>
-
             <div class="cta-section fade-in-section">
                 <p class="cta-text">施術について、もっと詳しく知りたいことがあれば</p>
                 <button class="cta-button" onclick="navigate('advisor')">相談してみる</button>
@@ -142,8 +340,8 @@
         <!-- 施術を調べる -->
         <section id="page-procedures" class="page">
             <div class="page-top">
-                <h1 class="page-title">施術を調べる</h1>
-                <p class="page-desc">広告ではわからない、本当の値段・痛み・回復期間・リスク。</p>
+                <h1 class="page-title">施術を調べる — 本当の費用・リスク・回復期間</h1>
+                <p class="page-desc">広告には書かれていない実際の値段・隠れコスト・後悔率を、施術ごとにデータで比較。</p>
             </div>
             <div class="filter-row" id="proc-filters"></div>
             <div id="proc-list"></div>
@@ -152,40 +350,111 @@
         <!-- クリニックを探す -->
         <section id="page-clinics" class="page">
             <div class="page-top">
-                <h1 class="page-title">クリニックを探す</h1>
-                <p class="page-desc">厚生労働省の公開データをもとにした、東京都内の美容クリニック情報です。<br>クリニック名をクリックすると、写真・地図・詳細情報を確認できます。</p>
+                <h1 class="page-title">クリニックを探す — 1,358施設の口コミ・価格比較</h1>
+                <p class="page-desc">厚生労働省の公開データをもとに、東京都内の美容クリニックを口コミ評価・専門医・価格透明性で客観比較。<br>クリニック名をクリックすると、写真・地図・詳細情報を確認できます。</p>
             </div>
             <div class="search-row">
-                <input type="text" id="clinic-q" placeholder="クリニック名や住所で検索" class="search-field">
-                <select id="clinic-area" class="search-select"><option value="">エリア</option></select>
-                <select id="clinic-dept" class="search-select">
-                    <option value="">診療科</option>
-                    <option value="美容外科">美容外科</option>
-                    <option value="美容皮膚科">美容皮膚科</option>
-                    <option value="形成外科">形成外科</option>
-                </select>
-                <select id="clinic-sort" class="search-select">
-                    <option value="rating">評価が高い順</option>
-                    <option value="review_count">口コミが多い順</option>
-                    <option value="name">名前順</option>
-                </select>
-                <button id="clinic-search-btn" class="search-btn">探す</button>
+                <input type="text" id="clinic-q" placeholder="クリニック名や住所で検索" class="search-field" aria-label="クリニック検索">
+                <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="toggleSearchFilters()" aria-expanded="false">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7m0 0V5a2 2 0 012-2h2a2 2 0 012 2v9m-6 0h6m6 0v7m0 0V10a2 2 0 00-2-2h-2a2 2 0 00-2 2v11m6 0h-6"/></svg>
+                    フィルタ
+                </button>
+                <div class="search-filters-collapsible" id="search-filters">
+                    <select id="clinic-area" class="search-select" aria-label="エリアフィルタ"><option value="">エリア</option></select>
+                    <select id="clinic-dept" class="search-select" aria-label="診療科フィルタ">
+                        <option value="">診療科</option>
+                        <option value="美容外科">美容外科</option>
+                        <option value="美容皮膚科">美容皮膚科</option>
+                        <option value="形成外科">形成外科</option>
+                    </select>
+                    <select id="clinic-grade" class="search-select" aria-label="グレードフィルタ">
+                        <option value="">グレード</option>
+                        <option value="A">A — 情報充実</option>
+                        <option value="B">B — 情報良好</option>
+                        <option value="C">C — 標準</option>
+                        <option value="D">D — やや不足</option>
+                        <option value="E">E — 収集中</option>
+                    </select>
+                    <select id="clinic-price-range" class="search-select" aria-label="予算">
+                        <option value="">予算</option>
+                        <option value="0-30000">～3万円</option>
+                        <option value="30000-100000">3万～10万円</option>
+                        <option value="100000-300000">10万～30万円</option>
+                        <option value="300000-500000">30万～50万円</option>
+                        <option value="500000-">50万円～</option>
+                    </select>
+                    <select id="clinic-sort" class="search-select" aria-label="並び替え">
+                        <option value="score">AURAスコア順</option>
+                        <option value="rating">評価が高い順</option>
+                        <option value="review_count">口コミが多い順</option>
+                        <option value="name">名前順</option>
+                    </select>
+                </div>
+                <button id="clinic-search-btn" class="search-btn" aria-label="クリニックを検索">探す</button>
+            </div>
+            <div class="view-toggle">
+                <button class="view-toggle-btn view-toggle-btn--active" id="view-list-btn" onclick="switchClinicView('list')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    リスト
+                </button>
+                <button class="view-toggle-btn" id="view-map-btn" onclick="switchClinicView('map')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    マップ
+                </button>
             </div>
             <p id="clinic-result-count" class="clinic-result-count"></p>
-            <div id="clinic-list"></div>
+            <div id="clinic-list" aria-live="polite"></div>
+            <div id="clinic-map-container" class="clinic-map-container" style="display:none;">
+                <div id="clinic-map" class="clinic-map"></div>
+            </div>
             <div id="clinic-pager" class="pager"></div>
+        </section>
+
+        <!-- ドクターを探す -->
+        <section id="page-doctors" class="page">
+            <div class="page-top">
+                <h1 class="page-title">ドクターを探す — 専門医資格・経験・信頼度で比較</h1>
+                <p class="page-desc">専門医資格・経験年数・勤務経歴から、信頼できる医師を探すお手伝いをします。<br><span class="page-desc-note">※ スコアは「情報の開示度」を示す指標です。スコアが低い＝悪い医師ではありません。</span></p>
+            </div>
+            <div class="search-row" id="doctor-search-row">
+                <input type="text" id="doctor-q" placeholder="医師名や資格で検索" class="search-field" aria-label="医師検索">
+                <button class="filter-toggle-btn" id="doctor-filter-toggle-btn" onclick="toggleDoctorFilters()" aria-expanded="false">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7m0 0V5a2 2 0 012-2h2a2 2 0 012 2v9m-6 0h6m6 0v7m0 0V10a2 2 0 00-2-2h-2a2 2 0 00-2 2v11m6 0h-6"/></svg>
+                    フィルタ
+                </button>
+                <div class="search-filters-collapsible" id="doctor-search-filters">
+                    <select id="doctor-area" class="search-select" aria-label="エリアフィルタ"><option value="">エリア</option></select>
+                    <label class="search-checkbox-label">
+                        <input type="checkbox" id="doctor-cert-filter"> 専門医のみ
+                    </label>
+                    <label class="search-checkbox-label">
+                        <input type="checkbox" id="doctor-show-all"> 全医師を表示
+                    </label>
+                    <select id="doctor-sort" class="search-select" aria-label="並び替え">
+                        <option value="score">情報開示スコア順</option>
+                        <option value="experience">経験年数順</option>
+                        <option value="name">名前順</option>
+                    </select>
+                </div>
+                <button id="doctor-search-btn" class="search-btn" aria-label="医師を検索">探す</button>
+            </div>
+            <div id="doctor-stats" class="doctor-stats"></div>
+            <p id="doctor-result-count" class="clinic-result-count"></p>
+            <div id="doctor-list" aria-live="polite"></div>
+            <div id="doctor-pager" class="pager"></div>
         </section>
 
         <!-- 相談する -->
         <section id="page-advisor" class="page">
             <div class="advisor-container">
                 <div class="advisor-intro" id="advisor-intro">
-                    <h1 class="page-title">相談する</h1>
-                    <p class="page-desc">気になる施術について、何でも聞いてください。<br>広告ではわからない実際の値段、リスク、カウンセリングで確認すべきことを整理してお伝えします。</p>
+                    <h1 class="page-title">美容医療についてAIに相談する</h1>
+                    <p class="page-desc">気になる施術の値段・リスク・クリニックの選び方について、何でも聞いてください。<br>広告ではわからない実際の値段、リスク、カウンセリングで確認すべきことを整理してお伝えします。</p>
                     <p class="advisor-note">AURAは特定の施術やクリニックを勧めることはありません。<br>情報を整理し、あなた自身が判断するためのお手伝いをします。</p>
                 </div>
                 <div class="chat-area" id="chat-area">
-                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+                    <div class="chat-starters" id="chat-starters"></div>
                 </div>
                 <div class="chat-quick-actions" id="chat-quick-actions">
                     <button class="chat-quick-btn" data-msg="二重にしたいんですが、埋没と切開の違いを教えてください">二重について聞く</button>
@@ -196,14 +465,41 @@
                     <button class="chat-quick-btn" data-msg="渋谷区で評価の高いクリニックを探しています">クリニックを探す</button>
                 </div>
                 <div class="chat-input-row">
-                    <input type="text" id="chat-input" placeholder="例：二重にしたいけど、埋没と切開で迷っている" class="chat-field">
+                    <button id="chat-reset" class="chat-reset-btn" title="新しい相談を始める" style="display:none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </button>
+                    <button id="chat-history-btn" class="chat-history-btn" title="過去の相談" onclick="showSessionHistory()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 8v4l3 3"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                    </button>
+                    <input type="text" id="chat-input" placeholder="例：二重にしたいけど、埋没と切開で迷っている" class="chat-field" aria-label="相談メッセージ入力">
                     <button id="chat-send" class="chat-send-btn" aria-label="送信">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
                         </svg>
                     </button>
                 </div>
+                <div class="dashboard-link-area">
+                    <a href="#" onclick="navigate('dashboard'); return false;" class="dashboard-link">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                        データ品質
+                    </a>
+                </div>
             </div>
+        </section>
+
+        <!-- データ品質ダッシュボード（管理者向け） -->
+        <section id="page-dashboard" class="page" style="display:none">
+            <div class="page-top">
+                <h1 class="page-title">AURA データ品質</h1>
+                <p class="page-desc">データの充実度と品質指標</p>
+            </div>
+            <div id="dashboard-content"></div>
         </section>
 
         <!-- お気に入り -->
@@ -213,6 +509,61 @@
                 <p class="page-desc">気になるクリニックを保存して、あとでじっくり比較できます。</p>
             </div>
             <div id="favorites-list" class="favorites-list"></div>
+            <div id="favorites-actions" class="favorites-actions" style="display:none;">
+                <button class="fav-compare-btn" id="fav-compare-btn" onclick="openFavCompareModal()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 20V10M12 20V4M6 20v-6"/>
+                    </svg>
+                    <span id="fav-compare-label">比較する</span>
+                </button>
+                <button class="prep-sheet-btn" id="generate-prep-sheet" onclick="generatePrepSheet()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    カウンセリング準備シートを作成
+                </button>
+                <button class="export-btn" onclick="exportFavorites('csv')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    CSVエクスポート
+                </button>
+                <button class="export-btn" onclick="exportFavorites('text')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    </svg>
+                    テキストコピー
+                </button>
+            </div>
+            <div class="browsing-history-section" id="browsing-history-section" style="display:none;">
+                <h2 class="section-heading" style="margin-top:2rem;">最近チェックしたクリニック</h2>
+                <p class="section-desc">直近に閲覧したクリニック・施術の履歴です。</p>
+                <div id="browsing-history-list" class="browsing-history-list"></div>
+            </div>
+            <div id="prep-sheet-modal" class="prep-sheet-modal" role="dialog" aria-modal="true" aria-label="カウンセリング準備シート" style="display:none;">
+                <div class="prep-sheet-content">
+                    <div class="prep-sheet-header">
+                        <h2>カウンセリング準備シート</h2>
+                        <div class="prep-sheet-actions">
+                            <button onclick="printPrepSheet()" class="prep-sheet-action-btn">印刷する</button>
+                            <button onclick="closePrepSheet()" class="prep-sheet-close-btn">閉じる</button>
+                        </div>
+                    </div>
+                    <div id="prep-sheet-body" class="prep-sheet-body"></div>
+                </div>
+            </div>
+            <!-- お気に入り比較モーダル -->
+            <div id="fav-compare-overlay" class="overlay fav-compare-overlay" style="display:none;">
+                <div class="detail-panel fav-compare-panel">
+                    <button class="detail-close" id="fav-compare-close" onclick="closeFavCompareModal()" aria-label="閉じる">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18"/><path d="M6 6L18 18"/>
+                        </svg>
+                    </button>
+                    <h2 class="detail-name">クリニック比較</h2>
+                    <div id="fav-compare-body" class="fav-compare-body"></div>
+                </div>
+            </div>
             <div id="favorites-empty" class="favorites-empty" style="display:none;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="opacity:0.3;">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -222,10 +573,49 @@
                 <button class="cta-button" onclick="navigate('clinics')" style="margin-top:16px;">クリニックを探す</button>
             </div>
         </section>
+
+        <!-- 症例写真検索 -->
+        <section id="page-case-photos" class="page">
+            <div class="page-top">
+                <h1 class="page-title">症例写真 — Before / Afterで施術効果をチェック</h1>
+                <p class="page-desc">各クリニックの公開症例写真を横断検索。カテゴリ・ソース別に比較して、施術のリアルな仕上がりを確認できます。</p>
+            </div>
+            <div id="cp-stats" class="cp-stats-bar"></div>
+            <div class="cp-filter-section">
+                <div class="filter-row" id="cp-category-filters"></div>
+                <div class="cp-source-filters" id="cp-source-filters"></div>
+            </div>
+            <p id="cp-result-count" class="clinic-result-count"></p>
+            <div id="cp-grid" class="cp-grid" aria-live="polite"></div>
+            <div id="cp-pager" class="pager"></div>
+        </section>
+
+        <!-- 利用規約 -->
+        <section id="page-terms" class="page" style="display:none">
+            <div class="page-header">
+                <h2 class="section-title">利用規約</h2>
+            </div>
+            <div id="terms-content" class="legal-content"></div>
+        </section>
+
+        <!-- プライバシーポリシー -->
+        <section id="page-privacy" class="page" style="display:none">
+            <div class="page-header">
+                <h2 class="section-title">プライバシーポリシー</h2>
+            </div>
+            <div id="privacy-content" class="legal-content"></div>
+        </section>
+
+        <!-- スクロールトップボタン -->
+        <button id="scroll-top-btn" class="scroll-top-btn" aria-label="トップへ戻る" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 15l-6-6-6 6"/>
+            </svg>
+        </button>
     </main>
 
     <!-- 施術詳細パネル -->
-    <div id="detail-overlay" class="overlay" style="display:none;">
+    <div id="detail-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="施術詳細" style="display:none;">
         <div class="detail-panel">
             <button class="detail-close" id="detail-close" aria-label="閉じる">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -237,7 +627,7 @@
     </div>
 
     <!-- クリニック詳細パネル -->
-    <div id="clinic-detail-overlay" class="overlay" style="display:none;">
+    <div id="clinic-detail-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="クリニック詳細" style="display:none;">
         <div class="detail-panel clinic-detail-panel">
             <button class="detail-close" id="clinic-detail-close" aria-label="閉じる">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -249,16 +639,57 @@
     </div>
 
     <!-- 比較パネル -->
-    <div id="compare-overlay" class="overlay" style="display:none;">
+    <div id="compare-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="compare-title" style="display:none;">
         <div class="detail-panel compare-panel">
             <button class="detail-close" id="compare-close" aria-label="閉じる">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 6L6 18"/><path d="M6 6L18 18"/>
                 </svg>
             </button>
-            <h2 class="detail-name">クリニック比較</h2>
+            <h2 class="detail-name" id="compare-title">クリニック比較</h2>
             <div id="compare-body" class="compare-grid"></div>
         </div>
+    </div>
+
+    <!-- 医師詳細パネル -->
+    <div id="doctor-detail-overlay" class="overlay" role="dialog" aria-modal="true" aria-label="医師詳細" style="display:none;">
+        <div class="detail-panel doctor-detail-panel">
+            <button class="detail-close" id="doctor-detail-close" aria-label="閉じる">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18"/><path d="M6 6L18 18"/>
+                </svg>
+            </button>
+            <div id="doctor-detail-body"></div>
+        </div>
+    </div>
+
+    <!-- 症例写真ライトボックス -->
+    <div id="cp-lightbox" class="cp-lightbox" role="dialog" aria-modal="true" aria-label="症例写真拡大表示" style="display:none;">
+        <button class="cp-lightbox-close" id="cp-lightbox-close" aria-label="閉じる">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18"/><path d="M6 6L18 18"/>
+            </svg>
+        </button>
+        <div class="cp-lightbox-body" id="cp-lightbox-body"></div>
+    </div>
+
+    <!-- 施術比較パネル -->
+    <div id="proc-compare-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="proc-compare-title" style="display:none;">
+        <div class="detail-panel compare-panel proc-compare-panel">
+            <button class="detail-close" id="proc-compare-close" aria-label="閉じる">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18"/><path d="M6 6L18 18"/>
+                </svg>
+            </button>
+            <h2 class="detail-name" id="proc-compare-title">施術比較</h2>
+            <div id="proc-compare-body" class="compare-grid"></div>
+        </div>
+    </div>
+
+    <!-- 施術比較バー -->
+    <div class="proc-compare-bar" id="proc-compare-bar" style="display:none;">
+        <div class="compare-bar-items" id="proc-compare-bar-items"></div>
+        <button class="compare-bar-btn" id="proc-compare-btn" aria-label="選択した施術を比較">比較する</button>
     </div>
 
     <!-- フッター -->
@@ -268,17 +699,22 @@
             <p class="footer-desc">美容医療の患者に、初めての味方を。<br>クリニックから広告費を受け取らない、患者のためだけの情報サービスです。</p>
             <div class="footer-source">データ出典: 厚生労働省 医療情報ネット（2025年12月1日版）/ Google Maps API</div>
             <p class="footer-disclaimer">本サービスは医療行為の推薦を行いません。施術の判断は必ず担当の医師とご相談ください。</p>
+            <div class="footer-legal-links">
+                <a href="#" onclick="navigate('terms'); return false;">利用規約</a>
+                <span class="footer-sep">|</span>
+                <a href="#" onclick="navigate('privacy'); return false;">プライバシーポリシー</a>
+            </div>
         </div>
     </footer>
 
     <!-- 比較バー -->
     <div class="compare-bar" id="compare-bar" style="display:none;">
         <div class="compare-bar-items" id="compare-bar-items"></div>
-        <button class="compare-bar-btn" id="compare-btn">比較する</button>
+        <button class="compare-bar-btn" id="compare-btn" aria-label="選択したクリニックを比較">比較する</button>
     </div>
 
     <!-- ボトムナビゲーション -->
-    <nav class="bottom-nav" id="bottom-nav">
+    <nav class="bottom-nav" id="bottom-nav" aria-label="ページナビゲーション">
         <a href="#" class="bottom-nav-item active" data-page="home">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/>
@@ -299,6 +735,12 @@
             </svg>
             <span>クリニック</span>
         </a>
+        <a href="#" class="bottom-nav-item" data-page="doctors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span>ドクター</span>
+        </a>
         <a href="#" class="bottom-nav-item" data-page="favorites">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -314,5 +756,15 @@
     </nav>
 
     <script src="/static/js/app.js"></script>
+    <script>
+    // Service Worker登録
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('SW登録成功:', reg.scope))
+                .catch(err => console.warn('SW登録失敗:', err));
+        });
+    }
+    </script>
 </body>
 </html>

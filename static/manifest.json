@@ -1,0 +1,18 @@
+{
+    "name": "AURA — 美容医療、受ける前に知っておきたいこと",
+    "short_name": "AURA",
+    "description": "美容医療の広告ではわからない、本当の値段・リスク・聞くべき質問",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FAF8F5",
+    "theme_color": "#2C2C2E",
+    "orientation": "portrait",
+    "lang": "ja",
+    "icons": [
+        {
+            "src": "/static/icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

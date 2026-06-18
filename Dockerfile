@@ -25,6 +25,11 @@ COPY data/aura.db data/aura.db
 # データディレクトリ（永続ディスクのマウントポイント）
 RUN mkdir -p /data
 
+# セキュリティ: 非rootユーザーで実行
+RUN useradd -m -s /bin/bash aura && \
+    chown -R aura:aura /app /data
+USER aura
+
 # 環境変数
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -32,9 +37,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # ポート
 EXPOSE 8400
 
-# ヘルスチェック
+# ヘルスチェック（stdlib のみ使用、外部ライブラリ不要）
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import httpx; r = httpx.get('http://localhost:8400/api/health'); assert r.status_code == 200"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8400/api/health')" || exit 1
 
 # 起動コマンド（start.pyが永続ディスクのDB管理を行う）
 CMD ["uv", "run", "python", "start.py"]

@@ -36,6 +36,7 @@ class LegalTool:
     description: str
     icon: str
     category: str  # "document" | "checklist" | "guide"
+    badge: str = ""  # バッジテキスト（例: "NEW"）
 
 
 # 利用可能なツール一覧
@@ -89,6 +90,30 @@ LEGAL_TOOLS = [
         icon="📞",
         category="guide",
     ),
+    LegalTool(
+        id="counseling_armor",
+        title="カウンセリング防衛カード",
+        description="「今日決めないと損」と言われたら。圧力をかわす具体的なセリフ集とチェックリスト。",
+        icon="🛡️",
+        category="guide",
+        badge="NEW",
+    ),
+    LegalTool(
+        id="question_generator",
+        title="質問リスト生成",
+        description="施術に応じた「医師に聞くべき質問」を自動生成。カウンセリングに持参してください。",
+        icon="❓",
+        category="checklist",
+        badge="NEW",
+    ),
+    LegalTool(
+        id="cooling_off_check",
+        title="クーリングオフ判定",
+        description="契約条件を入力すると、クーリングオフが適用されるかを判定します。",
+        icon="⚖️",
+        category="guide",
+        badge="NEW",
+    ),
 ]
 
 
@@ -101,6 +126,7 @@ def get_tools_list() -> list[dict]:
             "description": t.description,
             "icon": t.icon,
             "category": t.category,
+            "badge": t.badge,
         }
         for t in LEGAL_TOOLS
     ]
@@ -467,6 +493,356 @@ def generate_clinic_comparison_sheet() -> dict:
     }
 
 
+def generate_counseling_armor() -> dict:
+    """カウンセリング防衛カードを生成する
+
+    カウンセリング時の心理的圧力に対抗するための
+    具体的なセリフ集とチェックリスト。
+    """
+    return {
+        "title": "カウンセリング防衛カード — 圧力をかわす武器",
+        "philosophy": (
+            "美容医療のほとんどは緊急性がありません。"
+            "「今日決めないと損」と言われたら、それはクリニックの都合であって、"
+            "あなたの都合ではありません。良心的なクリニックは「考える時間」を与えてくれます。"
+        ),
+        "pressure_scripts": [
+            {
+                "pressure": "「今日契約すれば特別価格です」",
+                "response": "「ありがとうございます。でも、大きな決断なので家族と相談してからお返事します」",
+                "note": "本当に良い施術なら、明日でも同じ価格で提供できるはずです",
+            },
+            {
+                "pressure": "「モニター枠があと少しで埋まります」",
+                "response": "「それは残念ですが、納得していないまま受けるのは避けたいので、今回は見送ります」",
+                "note": "モニター枠の制限はクリニック都合。あなたの健康には関係ありません",
+            },
+            {
+                "pressure": "「早くやらないと効果が出にくくなりますよ」",
+                "response": "「具体的にどの程度の差があるのか、エビデンスを教えていただけますか？」",
+                "note": "大半の美容施術は数週間の遅れで結果に大きな差は出ません",
+            },
+            {
+                "pressure": "「カウンセラーが施術内容を提案」",
+                "response": "「医師の先生から直接説明をいただきたいのですが」",
+                "note": "施術内容を決定できるのは医師だけです。カウンセラーは医師ではありません",
+            },
+            {
+                "pressure": "「他のクリニックに行かないでください」",
+                "response": "「セカンドオピニオンは患者の当然の権利ですので、他院も受診させていただきます」",
+                "note": "セカンドオピニオンを嫌がるクリニックは自信がない証拠かもしれません",
+            },
+            {
+                "pressure": "「全額前払いでお願いします」",
+                "response": "「分割払いは可能ですか？ また、クーリングオフと中途解約の条件を書面で確認させてください」",
+                "note": "全額前払いだとトラブル時の返金交渉が極めて困難になります",
+            },
+        ],
+        "before_counseling_checklist": [
+            "「今日は話を聞くだけ」と最初に伝える",
+            "予算の上限を自分の中で決めておく（伝えない）",
+            "信頼できる人と一緒に行く（一人だと圧力に屈しやすい）",
+            "クレジットカードは持って行かない（即日契約防止）",
+            "説明内容をメモする（スマホのメモ帳でOK）",
+            "「録音してもいいですか？」と聞いてみる（拒否されたらそれ自体が情報）",
+        ],
+        "after_counseling_checklist": [
+            "帰宅後、冷静になってから判断する（最低1晩寝かせる）",
+            "信頼できる人に相談する",
+            "提示された金額がAURAの価格データと合っているか確認",
+            "最低3院のカウンセリングを受けてから決める",
+            "「その施術、本当に必要？」と自分に問いかける",
+        ],
+        "recording_guide": {
+            "title": "カウンセリング録音のガイド",
+            "legal_basis": "日本では、当事者の一方が同意していれば録音は合法です（秘密録音）。ただし、礼儀として事前に確認することを推奨します。",
+            "tips": [
+                "「後で確認したいので録音してもいいですか？」と聞く",
+                "拒否された場合は「わかりました、ではメモを取らせていただきます」",
+                "重要な説明（リスク・価格・保証）は「書面でいただけますか？」と依頼",
+            ],
+        },
+        "legal_note": "この情報は一般的なアドバイスであり、法的助言ではありません。",
+    }
+
+
+def generate_question_list(procedure_type: str = "") -> dict:
+    """施術別の「医師に聞くべき質問リスト」を生成する
+
+    施術カテゴリに応じた質問を生成。
+    カウンセリングに持参するためのツール。
+    """
+    # 共通質問（全施術共通）
+    common_questions = [
+        {
+            "category": "施術内容",
+            "questions": [
+                "この施術の具体的な手順を教えてください",
+                "使用する製剤・材料の名前とメーカーは？",
+                "先生はこの施術を何件くらい手がけていますか？",
+                "この施術以外の選択肢はありますか？",
+                "施術しない場合のリスクはありますか？",
+            ],
+        },
+        {
+            "category": "リスクと副作用",
+            "questions": [
+                "最もよくある副作用は？（発生率も教えてください）",
+                "最悪のケースではどうなりますか？",
+                "失敗や不満足の場合、修正は可能ですか？（費用は？）",
+                "先生の患者さんで、この施術に不満足だった方の割合は？",
+            ],
+        },
+        {
+            "category": "ダウンタイムと経過",
+            "questions": [
+                "ダウンタイムは実際に何日くらいですか？（社会復帰まで）",
+                "完成形になるまでの期間は？",
+                "術後のケアで必要なことは？",
+                "術後の通院は何回必要ですか？",
+            ],
+        },
+        {
+            "category": "料金と保証",
+            "questions": [
+                "総額を税込みで教えてください（麻酔代・薬代込み）",
+                "保証制度の内容と期間は？",
+                "修正・再施術の場合の追加費用は？",
+                "契約書とクーリングオフの説明を書面でいただけますか？",
+            ],
+        },
+    ]
+
+    # 施術カテゴリ別の追加質問
+    procedure_specific = {
+        "eye": {
+            "name": "二重・目元",
+            "questions": [
+                "埋没法と切開法、私のまぶたにはどちらが適していますか？",
+                "埋没法の場合、取れる可能性はどのくらいですか？",
+                "希望の二重幅は自然に見えますか？",
+            ],
+        },
+        "nose": {
+            "name": "鼻",
+            "questions": [
+                "使用するプロテーゼの種類と素材は？",
+                "感染や拘縮のリスクは？",
+                "将来的に修正が必要になる可能性は？",
+            ],
+        },
+        "skin": {
+            "name": "肌・スキンケア",
+            "questions": [
+                "何回の施術で効果が実感できますか？",
+                "効果の持続期間は？",
+                "ホームケアで同様の効果は得られませんか？",
+            ],
+        },
+        "injection": {
+            "name": "注入（ボトックス・ヒアルロン酸）",
+            "questions": [
+                "製剤名とメーカー、承認状況を教えてください",
+                "注入量は何ccですか？",
+                "溶解が必要になった場合の対応と費用は？",
+            ],
+        },
+        "body": {
+            "name": "痩身・ボディ",
+            "questions": [
+                "吸引量の上限は？（安全基準）",
+                "圧迫服の着用期間は？",
+                "リバウンド（体重増加時）はどうなりますか？",
+            ],
+        },
+    }
+
+    # 施術カテゴリに応じた質問を追加
+    specific = procedure_specific.get(procedure_type, None)
+    if specific:
+        common_questions.append({
+            "category": f"{specific['name']}固有の質問",
+            "questions": specific["questions"],
+        })
+
+    # 最後に追加すべき質問
+    common_questions.append({
+        "category": "最後に必ず聞くこと",
+        "questions": [
+            "この施術を私の家族に勧めますか？",
+            "もし先生自身が受けるなら、この施術を選びますか？",
+            "この施術をやめた方がいい患者さんの特徴は？",
+        ],
+    })
+
+    available_categories = list(procedure_specific.keys())
+
+    return {
+        "title": "医師に聞くべき質問リスト",
+        "subtitle": f"施術カテゴリ: {specific['name'] if specific else '全般'}",
+        "questions": common_questions,
+        "available_categories": available_categories,
+        "usage_guide": (
+            "このリストをカウンセリングに持参し、実際に質問してください。"
+            "全ての質問に誠実に答えてくれる医師は、信頼できる可能性が高いです。"
+            "質問を嫌がる、曖昧にする、急かす——これらは赤信号です。"
+        ),
+    }
+
+
+def generate_cooling_off_check(
+    contract_date: str = "",
+    procedure_type: str = "",
+    total_amount: str = "",
+    contract_period: str = "",
+    same_day_treatment: bool = False,
+) -> dict:
+    """クーリングオフ適用判定ツール
+
+    契約条件を入力すると、クーリングオフの適用可否を判定。
+    特定商取引法の「特定継続的役務提供」の条件に基づく。
+    """
+    # 対象施術カテゴリ
+    covered_procedures = {
+        "脱毛": True,
+        "シミ・ほくろ除去": True,
+        "シワ・たるみ軽減": True,
+        "脂肪減少": True,
+        "歯のホワイトニング": True,
+        "ニキビ治療": True,
+    }
+
+    # 判定ロジック
+    results = []
+    applicable = True
+
+    # 条件1: 特定継続的役務提供の対象施術か
+    if procedure_type:
+        is_covered = any(key in procedure_type for key in covered_procedures)
+        if is_covered:
+            results.append({
+                "check": "対象施術",
+                "status": "✅ 対象",
+                "detail": f"『{procedure_type}』は特定商取引法の対象施術に該当します",
+            })
+        else:
+            results.append({
+                "check": "対象施術",
+                "status": "⚠️ 要確認",
+                "detail": f"『{procedure_type}』が対象かは契約内容を確認する必要があります",
+            })
+            applicable = False  # 確実に対象外とは言えない
+
+    # 条件2: 契約期間が1ヶ月超
+    if contract_period:
+        try:
+            months = int(contract_period.replace("ヶ月", "").replace("カ月", "").replace("月", "").strip())
+            if months > 1:
+                results.append({
+                    "check": "契約期間",
+                    "status": "✅ 条件充足",
+                    "detail": f"契約期間{months}ヶ月は1ヶ月超の条件を満たします",
+                })
+            else:
+                results.append({
+                    "check": "契約期間",
+                    "status": "❌ 条件不充足",
+                    "detail": "契約期間が1ヶ月以下のため、クーリングオフの対象外の可能性があります",
+                })
+                applicable = False
+        except ValueError:
+            pass
+
+    # 条件3: 総額5万円超
+    if total_amount:
+        try:
+            amount = int(total_amount.replace("万", "0000").replace("円", "").replace(",", "").strip())
+            if amount > 50000:
+                results.append({
+                    "check": "契約金額",
+                    "status": "✅ 条件充足",
+                    "detail": f"契約金額{amount:,}円は5万円超の条件を満たします",
+                })
+            else:
+                results.append({
+                    "check": "契約金額",
+                    "status": "❌ 条件不充足",
+                    "detail": f"契約金額{amount:,}円は5万円以下のため、クーリングオフ対象外です",
+                })
+                applicable = False
+        except ValueError:
+            pass
+
+    # 条件4: 契約日から8日以内
+    deadline_info = ""
+    if contract_date:
+        try:
+            # 簡易パース（YYYY-MM-DD or YYYY年MM月DD日）
+            clean = contract_date.replace("年", "-").replace("月", "-").replace("日", "")
+            dt = datetime.strptime(clean, "%Y-%m-%d")
+            days_elapsed = (datetime.now() - dt).days
+            deadline = dt + timedelta(days=8)
+
+            if days_elapsed <= 8:
+                remaining = 8 - days_elapsed
+                results.append({
+                    "check": "クーリングオフ期限",
+                    "status": "✅ 期限内",
+                    "detail": f"契約日から{days_elapsed}日経過。期限: {deadline.strftime('%Y年%m月%d日')}（残り{remaining}日）",
+                })
+                deadline_info = f"‼️ 急いでください！期限まで残り{remaining}日です。"
+            else:
+                results.append({
+                    "check": "クーリングオフ期限",
+                    "status": "⚠️ 期限超過",
+                    "detail": f"契約日から{days_elapsed}日経過。ただし書面不備等の場合は延長されることがあります",
+                })
+                applicable = False
+                deadline_info = "期限超過ですが、書面不備等の場合は消費者センター(188)にご相談ください。"
+        except (ValueError, TypeError):
+            pass
+
+    # 即日施術のリスク警告
+    same_day_warning = ""
+    if same_day_treatment:
+        same_day_warning = (
+            "⚠️ 即日施術の場合、契約期間が1ヶ月以下と判断され、"
+            "クーリングオフの対象外となる可能性があります。"
+            "これがクリニックが即日施術を勧める理由の一つでもあります。"
+        )
+
+    # 結果判定
+    if not results:
+        judgment = "判定に必要な情報が不足しています。契約日・施術内容・金額・契約期間を入力してください。"
+    elif applicable:
+        judgment = "✅ クーリングオフが適用される可能性が高いです。速やかに行動してください。"
+    else:
+        judgment = "⚠️ クーリングオフが適用されない可能性があります。詳細は消費者センター(188)にご相談ください。"
+
+    return {
+        "title": "クーリングオフ適用判定",
+        "judgment": judgment,
+        "deadline_info": deadline_info,
+        "same_day_warning": same_day_warning,
+        "checks": results,
+        "conditions": {
+            "title": "クーリングオフの適用条件",
+            "items": [
+                "① 特定商取引法の対象施術（脱毛、シミ・ほくろ除去、シワ・たるみ軽減、脂肪減少、ホワイトニング、ニキビ治療）",
+                "② 契約期間が1ヶ月を超えること",
+                "③ 支払総額が5万円を超えること",
+                "④ 契約書面受領日を含めて8日以内",
+            ],
+        },
+        "next_steps": [
+            "適用される場合: 「クーリングオフ通知書」ツールで通知書を作成",
+            "不明な場合: 消費者ホットライン(188)に電話相談",
+            "期限超過でも: 中途解約権があります（解約料の上限あり）",
+        ],
+        "legal_note": "この判定は一般的な法律知識の整理であり、法的助言ではありません。具体的な判断は弁護士または消費生活センターにご確認ください。",
+    }
+
+
 # ==========================================
 # ツール実行ディスパッチャー
 # ==========================================
@@ -494,6 +870,9 @@ def execute_tool(tool_id: str, params: dict | None = None) -> dict | None:
         "post_surgery": lambda: generate_post_surgery_checklist(**params),
         "clinic_compare": lambda: generate_clinic_comparison_sheet(),
         "consumer_center": lambda: generate_consumer_center_prep(**params),
+        "counseling_armor": lambda: generate_counseling_armor(),
+        "question_generator": lambda: generate_question_list(**params),
+        "cooling_off_check": lambda: generate_cooling_off_check(**params),
     }
 
     handler = handlers.get(tool_id)
