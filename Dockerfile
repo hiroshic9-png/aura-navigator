@@ -19,12 +19,8 @@ COPY src/ src/
 COPY static/ static/
 COPY start.py start.py
 
-# 初期DBデータ（存在する場合のみコピー。git管理外のため、ローカルビルド時用）
-# Render永続ディスクに直接DBを配置する場合はこのステップは不要
-COPY data/aura.d[b] data/
-
-# データディレクトリ（永続ディスクのマウントポイント）
-RUN mkdir -p /data
+# データディレクトリ作成（起動時にGitHub ReleasesからDBをダウンロード）
+RUN mkdir -p /app/data
 
 # セキュリティ: 非rootユーザーで実行
 RUN useradd -m -s /bin/bash aura && \
