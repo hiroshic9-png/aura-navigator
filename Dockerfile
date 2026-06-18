@@ -24,7 +24,7 @@ RUN mkdir -p /app/data
 
 # セキュリティ: 非rootユーザーで実行
 RUN useradd -m -s /bin/bash aura && \
-    chown -R aura:aura /app /data
+    chown -R aura:aura /app
 USER aura
 
 # 環境変数
