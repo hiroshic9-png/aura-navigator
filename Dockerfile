@@ -19,8 +19,9 @@ COPY src/ src/
 COPY static/ static/
 COPY start.py start.py
 
-# 初期DBデータ（永続ディスクが空の場合にコピーされる）
-COPY data/aura.db data/aura.db
+# 初期DBデータ（存在する場合のみコピー。git管理外のため、ローカルビルド時用）
+# Render永続ディスクに直接DBを配置する場合はこのステップは不要
+COPY data/aura.d[b] data/
 
 # データディレクトリ（永続ディスクのマウントポイント）
 RUN mkdir -p /data
