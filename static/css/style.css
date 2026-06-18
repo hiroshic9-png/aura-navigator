@@ -10499,6 +10499,60 @@ body {
     }
 }
 
+/* ------------------------------------------
+   症例写真 — カテゴリ別画像位置調整
+   横長の取得元画像を縦レイアウトに嵌め込む際に、
+   対象部位が確実に表示されるようobject-positionを制御
+   ------------------------------------------ */
+
+/* アスペクト比を3:4の縦長に変更（正方形だと顔が切れやすい） */
+.cp-card-img,
+.case-photo-img {
+    aspect-ratio: 3 / 4;
+}
+
+/* 目もと — 横長画像の上部30%を表示（目の位置は顔の上半分） */
+.cp-cat-eyes .cp-card-img img,
+.cp-cat-eyes .case-photo-img img,
+[data-category="eyes"] .cp-card-img img {
+    object-position: center 25%;
+}
+
+/* 鼻 — 顔の中央やや上を表示 */
+.cp-cat-nose .cp-card-img img,
+.cp-cat-nose .case-photo-img img,
+[data-category="nose"] .cp-card-img img {
+    object-position: center 30%;
+}
+
+/* 肌 — 顔全体を表示 */
+.cp-cat-skin .cp-card-img img,
+.cp-cat-skin .case-photo-img img,
+[data-category="skin"] .cp-card-img img {
+    object-position: center 20%;
+}
+
+/* 輪郭 — 顔の下半分（フェイスライン）を表示 */
+.cp-cat-jawline .cp-card-img img,
+.cp-cat-jawline .case-photo-img img,
+[data-category="jawline"] .cp-card-img img {
+    object-position: center 35%;
+}
+
+/* 痩身・身体 — 中央を表示（デフォルト） */
+.cp-cat-body .cp-card-img img,
+.cp-cat-body .case-photo-img img,
+[data-category="body"] .cp-card-img img {
+    object-position: center center;
+}
+
+/* その他・デフォルト — 上部寄りに表示 */
+.cp-cat-other .cp-card-img img,
+.cp-cat-other .case-photo-img img,
+[data-category="other"] .cp-card-img img {
+    object-position: center 30%;
+}
+
 
 /* ------------------------------------------
    症例写真検索ページ（専用ページ）

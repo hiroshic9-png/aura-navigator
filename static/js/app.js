@@ -6363,8 +6363,11 @@ function renderCpCard(photo, idx) {
     const clinicName = photo.clinic_name ? escapeHtml(photo.clinic_name) : '';
     const doctorName = photo.doctor_name ? escapeHtml(photo.doctor_name) : '';
 
+    // カテゴリ別の画像位置クラスを決定
+    const catClass = photo.category ? `cp-cat-${escapeHtml(photo.category)}` : '';
+
     return `
-        <div class="cp-card" style="animation-delay: ${delay}ms" data-cp-idx="${idx}" onclick="openCpLightbox(_cpPhotosCache[${idx}])">
+        <div class="cp-card ${catClass}" style="animation-delay: ${delay}ms" data-cp-idx="${idx}" data-category="${escapeHtml(photo.category || '')}" onclick="openCpLightbox(_cpPhotosCache[${idx}])">
             <div class="cp-card-pair">
                 <div class="cp-card-img">
                     <span class="cp-card-label">Before</span>
