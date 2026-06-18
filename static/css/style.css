@@ -297,6 +297,8 @@ main {
 /* ページトップ */
 .page-top {
     padding: 2.5rem 0 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
 }
 
 .page-title {
@@ -850,7 +852,14 @@ main {
 
 /* 詳細ブロック — セクション区切り */
 .detail-block {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.detail-block:first-child {
+    border-top: none;
+    padding-top: 0;
 }
 
 .detail-block-title {
@@ -1556,10 +1565,20 @@ main {
     padding-top: 2rem;
 }
 
-.pager-btn {
-    width: 44px;
-    height: 44px;
+/* nav要素で囲まれた場合もflex横並びを保持 */
+.pager nav {
     display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.pager-btn {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 0.6rem;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--border);
