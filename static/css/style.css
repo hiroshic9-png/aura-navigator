@@ -21,26 +21,27 @@
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 :root {
-    /* 色彩 — 落ち着いたウォームトーン */
-    --bg:             #faf9f7;
-    --bg-warm:        #f3f1ed;
-    --bg-warm-alt:    #eee9e3;
+    /* 色彩 — グレー背景 + 白カードでパネル形状を明確に */
+    --bg:             #f0eeea;
+    --bg-warm:        #e9e6e1;
+    --bg-warm-alt:    #e2ded8;
     --surface:        #ffffff;
-    --border:         #ddd9d3;
-    --border-subtle:  #e8e4de;
+    --border:         #ccc7bf;
+    --border-subtle:  #d9d4cc;
 
     /* テキスト階層 */
     --text:           #1a1a1a;
     --text-secondary: #5c5c5c;
-    --text-muted:     #999999;
+    --text-muted:     #8a8a8a;
 
     /* アクセント — 深いフォレストグリーン（信頼・安心） */
     --accent:         #2c4a3e;
     --accent-hover:   #1f3a30;
-    --accent-soft:    #e8efeb;
+    --accent-soft:    #e0ebe4;
 
     /* セマンティック */
     --success:        #3D8B6E;
@@ -62,13 +63,13 @@
     --transition:     0.2s ease;
 
     /* 影 — 最小限 */
-    --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.06);
-    --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md:    0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.15);
 
     /* 追加トークン */
-    --bg-elevated:  #f9f8f6;
-    --card-border:  #ddd9d3;
+    --bg-elevated:  #f7f6f3;
+    --card-border:  #ccc7bf;
     --accent-blue:  #3b82f6;
     --primary:      #2c4a3e;
 }
@@ -116,8 +117,8 @@ body {
     margin: 0 auto;
     padding: 0 1rem;
     height: 52px;
-    background: rgba(255, 250, 247, 0.85);
-    border-bottom: 1px solid rgba(232, 228, 223, 0.6);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -1607,7 +1608,7 @@ main {
 /* アシスタントバブル — 背景 */
 .msg--assistant .msg-body {
     background: var(--surface);
-    border: 1px solid rgba(232, 228, 223, 0.6);
+    border: 1px solid var(--border);
     color: var(--text);
     border-radius: 10px 20px 20px 4px;
     box-shadow: var(--shadow-sm);
@@ -1830,8 +1831,8 @@ main {
     padding: 1.25rem 0;
     position: sticky;
     bottom: 0;
-    background: rgba(255, 250, 247, 0.9);
-    border-top: 1px solid rgba(232, 228, 223, 0.5);
+    background: var(--bg);
+    border-top: 1px solid var(--border);
 }
 
 .chat-field {
@@ -2761,7 +2762,7 @@ main {
     right: 0;
     z-index: 150;
     background: rgba(255, 255, 255, 0.9);
-    border-top: 1px solid rgba(232, 228, 223, 0.6);
+    border-top: 1px solid var(--border);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
     padding: 0.75rem 1.25rem;
     display: flex;
@@ -2963,7 +2964,7 @@ main {
     z-index: 160;
     display: flex;
     background: rgba(255, 255, 255, 0.92);
-    border-top: 1px solid rgba(232, 228, 223, 0.6);
+    border-top: 1px solid var(--border);
     box-shadow: 0 -1px 12px rgba(0, 0, 0, 0.04);
     height: 72px;
     padding-bottom: env(safe-area-inset-bottom, 0);
@@ -10336,4 +10337,58 @@ body {
 
 .concern-section {
     border-top: none;
+}
+
+/* ==========================================
+   パネル感強化 — 全カード系コンポーネント共通
+   背景色(--bg)とカード(--surface)の明暗差 + shadow-sm で
+   パネルの「面」を明確に認識させる
+   ========================================== */
+.proc-item,
+.clinic-item,
+.doctor-card,
+.doctor-card-detail,
+.concern-card,
+.guide-card,
+.popular-card,
+.trouble-card,
+.recommendation-card,
+.area-card,
+.price-truth-item,
+.tool-card,
+.top-clinic-card,
+.chat-quick-btn,
+.dd-breakdown,
+.dd-clinic-card,
+.ps-proc-card,
+.ps-clinic-card,
+.cp-card {
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+/* 検索フォーム領域をパネル化 */
+.search-row {
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+
+/* フィルタ行（施術ページ） */
+.filter-row {
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+
+/* 詳細パネル（オーバーレイ）の白背景を明確に */
+.detail-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
 }
