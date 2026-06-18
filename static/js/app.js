@@ -6150,14 +6150,13 @@ function renderTroubleCases() {
 // ==========================================
 
 let casePhotosInitialized = false;
-let cpCurrentCategory = '';
+let cpCurrentCategory = 'eyes';
 let cpCurrentSource = '';
 let cpCurrentPage = 1;
 let _cpPhotosCache = [];
 
 /** カテゴリ定義 */
 const _CP_CATEGORIES = [
-    { key: '', label: 'すべて' },
     { key: 'eyes', label: '目元' },
     { key: 'nose', label: '鼻' },
     { key: 'skin', label: '肌' },

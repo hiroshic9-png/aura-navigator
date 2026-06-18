@@ -422,9 +422,8 @@ main {
 .concern-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-    border: none;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }
 
 /* カード — 角丸ベースにリデザイン */
@@ -9904,17 +9903,19 @@ body {
 
 .popular-card {
     min-width: 160px;
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 20px 16px;
     scroll-snap-align: start;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease;
     text-align: center;
     flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
 }
 .popular-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    border-color: var(--accent);
 }
 
 .popular-card-name {
@@ -10028,11 +10029,10 @@ body {
 .trouble-card {
     min-width: 260px;
     background: var(--surface);
-    border-radius: 16px;
+    border-radius: var(--radius);
     padding: 20px;
     scroll-snap-align: start;
-    border: 1px solid rgba(232,180,184,0.2);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
     flex-shrink: 0;
 }
 
@@ -11106,4 +11106,22 @@ body {
     .cp-stats-number {
         font-size: 1.3rem;
     }
+}
+
+/* セクション間の区切り線 — LIPSテイスト */
+.fade-in-section,
+.concern-section,
+.price-truth-section,
+.market-prices-home,
+.area-dashboard-section,
+.top-clinics-section,
+.review-trends-section,
+.tools-section {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.concern-section {
+    border-top: none;
 }
