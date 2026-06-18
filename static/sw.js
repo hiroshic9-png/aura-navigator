@@ -1,5 +1,5 @@
 // AURA Service Worker — オフラインサポート
-const CACHE_NAME = 'aura-v3';
+const CACHE_NAME = 'aura-v4';
 const STATIC_ASSETS = [
     '/',
     '/static/css/style.css',
